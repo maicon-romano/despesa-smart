@@ -19,6 +19,26 @@ body {
   font-family: "Lato", sans-serif;
 }
 
+.botao-voltar {
+  background: #f7f7f7;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 1px solid #cbcbcb;
+  color: #000;
+  text-decoration: none;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-top: 20px;
+  transition: 0.4s;
+}
+
+.botao-voltar:hover {
+  background-color: #dddddd;
+  padding: 12px 17px;
+  font-size: 1.1rem;
+}
+
 .container {
   margin: 30px auto;
   width: 350px;
