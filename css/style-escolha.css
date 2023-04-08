@@ -1,0 +1,48 @@
+body {
+  margin: 0px;
+  background: #fafafa;
+}
+
+.index-div {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.title-selecione {
+  font-size: 2.5rem;
+  text-transform: uppercase;
+  text-align: center;
+  color: #262626;
+  font-family: sans-serif;
+  margin: 0px;
+}
+
+.controle-despesas-card {
+  display: flex;
+  gap: 60px;
+  justify-content: center;
+}
+
+.botao-selecionar-despesas {
+  background: #973116;
+  padding: 25px 50px;
+  border-radius: 25px;
+  border: 1px solid #cbcbcb;
+  color: #fff;
+  text-decoration: none;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 1.7rem;
+  margin-top: 30px;
+  transition: 0.4s;
+}
+
+.botao-selecionar-despesas:hover {
+  background-color: #79260f;
+  padding: 28px 53px;
+  font-size: 1.8rem;
+}

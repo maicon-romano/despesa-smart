@@ -1,9 +1,9 @@
 body {
-  margin: 0px;
   background: #fafafa;
+  overflow: hidden;
 }
 
-.index-div {
+.tela-login {
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -12,37 +12,43 @@ body {
   align-items: center;
 }
 
-.title-selecione {
-  font-size: 2.5rem;
-  text-transform: uppercase;
-  text-align: center;
-  color: #262626;
+.label-name {
   font-family: sans-serif;
-  margin: 0px;
-}
-
-.controle-despesas-card {
-  display: flex;
-  gap: 60px;
-  justify-content: center;
-}
-
-.botao-selecionar-despesas {
-  background: #973116;
-  padding: 25px 50px;
-  border-radius: 25px;
-  border: 1px solid #cbcbcb;
-  color: #fff;
-  text-decoration: none;
-  font-family: sans-serif;
-  font-weight: bold;
   font-size: 1.7rem;
-  margin-top: 30px;
-  transition: 0.4s;
+  color: #000;
+  font-weight: bold;
 }
 
-.botao-selecionar-despesas:hover {
-  background-color: #79260f;
-  padding: 28px 53px;
-  font-size: 1.8rem;
+.formulario {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: #e3e3e3;
+  padding: 60px;
+  border-radius: 25px;
+  border: 2px solid #c5c5c5;
+}
+
+.input {
+  width: 100%;
+  border-radius: 6px;
+  border: 2px solid #a9a9a9;
+  padding: 4px 10px;
+}
+
+.name-senha {
+  margin-top: 25px;
+}
+
+.botao {
+  border: none;
+  background: #973116;
+  padding: 10px 30px;
+  border-radius: 10px;
+  margin-top: 25px;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
