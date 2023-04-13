@@ -46,3 +46,14 @@ body {
   padding: 28px 53px;
   font-size: 1.8rem;
 }
+
+/* Responsividade */
+@media (max-width: 500px) {
+  .title-selecione {
+    font-size: 2.2rem;
+  }
+  .controle-despesas-card {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
