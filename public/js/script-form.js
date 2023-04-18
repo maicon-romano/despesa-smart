@@ -4,7 +4,7 @@ document.querySelector(".btn-login").addEventListener("click", function () {
 
   if (username === "MGdespesas" && password === "Controle2023") {
     // Se o nome de usuário e a senha estiverem corretos, redirecionar para a página de escolha de controle
-    window.location.href = "/public/pages/escolha-controle.html";
+    window.location.href = "./pages/escolha-controle.html";
     alert("Bem vindo!");
   } else {
     // Se o nome de usuário e a senha estiverem incorretos, mostrar uma mensagem de erro
