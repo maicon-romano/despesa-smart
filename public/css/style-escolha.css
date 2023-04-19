@@ -28,10 +28,9 @@ body {
 }
 
 .botao-selecionar-despesas {
-  background: #973116;
-  padding: 25px 50px;
-  border-radius: 25px;
-  border: 1px solid #cbcbcb;
+  background: #00a9fb;
+  padding: 1.3rem 2rem;
+  border-radius: 15px;
   color: #fff;
   text-decoration: none;
   font-family: sans-serif;
@@ -42,9 +41,7 @@ body {
 }
 
 .botao-selecionar-despesas:hover {
-  background-color: #79260f;
-  padding: 28px 53px;
-  font-size: 1.8rem;
+  background-color: #0089ce;
 }
 
 /* Responsividade */
