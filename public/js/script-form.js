@@ -16,36 +16,34 @@ function registrar() {
   var email = document.getElementById("email").value;
   var password = document.getElementById("password").value;
 
-  auth
-    .createUserWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      // User registered successfully
-      var user = userCredential.user;
-      console.log(user);
-    })
-    .catch((error) => {
-      // Registration failed
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      console.log(errorMessage);
-    });
+  auth.createUserWithEmailAndPassword(email, password)
+  .then((userCredential) => {
+    // User registered successfully
+    var user = userCredential.user;
+    console.log(user);
+  })
+  .catch((error) => {
+    // Registration failed
+    var errorCode = error.code;
+    var errorMessage = error.message;
+    console.log(errorMessage);
+  });
 }
 
 function entrar() {
   var email = document.getElementById("email").value;
   var password = document.getElementById("password").value;
 
-  auth
-    .signInWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      // User logged in successfully
-      var user = userCredential.user;
-      console.log(user);
-    })
-    .catch((error) => {
-      // Login failed
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      console.log(errorMessage);
-    });
+  auth.signInWithEmailAndPassword(email, password)
+  .then((userCredential) => {
+    // User logged in successfully
+    var user = userCredential.user;
+    console.log(user);
+  })
+  .catch((error) => {
+    // Login failed
+    var errorCode = error.code;
+    var errorMessage = error.message;
+    console.log(errorMessage);
+  });
 }
