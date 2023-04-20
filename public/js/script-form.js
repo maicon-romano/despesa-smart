@@ -1,6 +1,6 @@
 document.querySelector(".btn-login").addEventListener("click", function () {
   var email = document.querySelector('input[name="email"]').value;
-  var password = document.querySelector('input[name="senha"]').value;
+  var password = document.querySelector('input[name="password"]').value;
 
   firebase
     .auth()
