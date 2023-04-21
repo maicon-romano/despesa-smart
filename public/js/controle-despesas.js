@@ -131,21 +131,15 @@ const handleFormSubmit = (event) => {
 form.addEventListener("submit", handleFormSubmit);
 
 window.onload = function () {
-  // Configuração do Firebase Authentication
   const auth = firebase.auth();
-
-  // Obtém uma referência para a coleção de transações
   const transactionsCollectionRef = firebase
     .firestore()
     .collection("transactions");
 
-  // Adiciona uma nova transação ao banco de dados do Firebase
   function addTransaction(description, value) {
-    // Obtém o usuário autenticado
     const user = firebase.auth().currentUser;
 
     if (user) {
-      // Cria um novo documento de transação com o UID do usuário como ID
       transactionsCollectionRef
         .doc(user.uid)
         .collection("userTransactions")
@@ -155,6 +149,7 @@ window.onload = function () {
         })
         .then(() => {
           console.log("Transação adicionada com sucesso!");
+          getUserTransactions();
         })
         .catch((error) => {
           console.error("Erro ao adicionar transação:", error);
@@ -164,32 +159,54 @@ window.onload = function () {
     }
   }
 
-  // Recupera as transações do usuário autenticado
-  function getUserTransactions() {
-    // Obtém o usuário autenticado
+  function removeTransaction(transactionId) {
     const user = firebase.auth().currentUser;
 
     if (user) {
-      // Faz uma consulta no banco de dados para obter as transações do usuário
+      transactionsCollectionRef
+        .doc(user.uid)
+        .collection("userTransactions")
+        .doc(transactionId)
+        .delete()
+        .then(() => {
+          console.log("Transação removida com sucesso!");
+          getUserTransactions();
+        })
+        .catch((error) => {
+          console.error("Erro ao remover transação:", error);
+        });
+    } else {
+      console.error("Usuário não autenticado");
+    }
+  }
+
+  function getUserTransactions() {
+    const user = firebase.auth().currentUser;
+
+    if (user) {
       transactionsCollectionRef
         .doc(user.uid)
         .collection("userTransactions")
         .get()
         .then((querySnapshot) => {
-          // Remove todos os elementos da lista (UL)
           const transactionsList = document.getElementById("transactions");
           transactionsList.innerHTML = "";
 
           querySnapshot.forEach((doc) => {
             console.log(doc.id, " => ", doc.data());
 
-            // Cria um novo elemento de lista (LI) com as informações da transação
             const transactionElement = document.createElement("li");
             transactionElement.textContent = `${doc.data().description} - R$ ${
               doc.data().value
             }`;
 
-            // Adiciona o novo elemento de lista à lista (UL)
+            const removeButton = document.createElement("button");
+            removeButton.textContent = "X";
+            removeButton.onclick = () => {
+              removeTransaction(doc.id);
+            };
+            transactionElement.appendChild(removeButton);
+
             transactionsList.appendChild(transactionElement);
           });
         })
@@ -201,31 +218,24 @@ window.onload = function () {
     }
   }
 
-  // Cria um observador para verificar se o usuário está autenticado ou não
   auth.onAuthStateChanged((user) => {
     if (user) {
-      // O usuário está autenticado
       console.log("Usuário autenticado:", user.uid);
-
-      // Aqui você pode criar o código para exibir as informações do usuário ou carregar as transações do banco de dados
+      getUserTransactions();
     } else {
-      // O usuário não está autenticado
       console.log("Usuário não autenticado");
-
-      // Aqui você pode criar o código para exibir um formulário de login ou redirecionar o usuário para a página de login
+      const transactionsList = document.getElementById("transactions");
+      transactionsList.innerHTML = "";
     }
   });
 
-  // Adiciona uma transação quando o formulário for enviado
   const form = document.getElementById("form");
   form.addEventListener("submit", (event) => {
-    event.preventDefault(); // Impede que a página seja recarregada ao enviar o formulário
+    event.preventDefault();
 
-    // Obtém os valores dos campos de entrada
     const description = document.getElementById("text").value;
     const value = parseFloat(document.getElementById("amount").value);
 
-    // Verifica se os campos de entrada estão preenchidos
     if (!description || isNaN(value)) {
       console.error(
         "Os campos de entrada devem ser preenchidos e o valor deve ser um número válido"
@@ -233,36 +243,12 @@ window.onload = function () {
       return;
     }
 
-    // Adiciona a transação ao banco de dados do Firebase
     addTransaction(description, value);
 
-    // Cria um novo elemento de lista (LI) com os valores dos campos de entrada
-    const transactionElement = document.createElement("li");
-    transactionElement.textContent = `${description} - R$ ${value}`;
-
-    // Adiciona o novo elemento de lista à lista (UL)
-    const transactionsList = document.getElementById("transactions");
-    transactionsList.appendChild(transactionElement);
-
-    // Limpa os valores dos campos de entrada
     document.getElementById("text").value = "";
     document.getElementById("amount").value = "";
-
-    // Exibe uma mensagem de sucesso
-    const successMessage = document.getElementById("success-message");
-    successMessage.style.display = "block";
-    setTimeout(() => {
-      successMessage.style.display = "none";
-    }, 3000);
-
-    // Atualiza a lista de transações
-    getUserTransactions();
   });
 
-  // Exemplo de como recuperar as transações do usuário
-  getUserTransactions();
-
-  // Adiciona um ouvinte para o botão de logout
   const logoutButton = document.getElementById("logout-button");
   logoutButton.addEventListener("click", () => {
     firebase
@@ -276,7 +262,6 @@ window.onload = function () {
       });
   });
 
-  // Adiciona um ouvinte para o botão de login
   const loginButton = document.getElementById("login-button");
   loginButton.addEventListener("click", () => {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -285,6 +270,7 @@ window.onload = function () {
       .signInWithPopup(provider)
       .then((result) => {
         console.log("Usuário autenticado com sucesso:", result.user.uid);
+        getUserTransactions();
       })
       .catch((error) => {
         console.error("Erro ao autenticar usuário:", error);
