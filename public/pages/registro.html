@@ -5,40 +5,33 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>Registrar</title>
 
-  <link rel="stylesheet" href="./css/style-index.css">
+  <link rel="stylesheet" href="../css/style-index.css">
 </head>
 
 <body>
   <div class="main-login flex-center">
-    <div class="left-login flex-login flex-center">
-      <h1>Faça login<br>E gerencie suas contas</h1>
-      <img src="./images/business-ethics.gif" class="left-login-image" alt="Gestão de contas imagens">
-    </div>
     <div class="right-login flex-login flex-center">
       <div class="card-login flex-center">
-        <h1>Login</h1>
+        <h1>Registre-se</h1>
 
         <div class="textfield">
-          <label for="email"><i class="fa-solid fa-envelope"></i> Email</label>
-          <input type="email" id="email" name="email" placeholder="Email">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="Preencha com seu email">
         </div>
         <div class="textfield">
-          <label for="password"><i class="fa-solid fa-lock"></i> Senha</label>
-          <input type="password" id="password" name="password" placeholder="Senha">
+          <label for="password">Senha</label>
+          <input type="password" id="password" name="password" placeholder="Coloque uma senha. Ex: Sucesso2023">
         </div>
-        <div class="botoes-link">
-          <a class="btn-link" href="./pages/registro.html"><i class="fa-solid fa-address-card"></i>Registre-se</a>
-          <a class="btn-link" href="./pages/redefinir-senha.html"><i class="fa-solid fa-key"></i>Esqueceu a senha?</a>
-        </div>
-        <button class="btn-login" onclick="entrar()">Entrar <i class="fa-solid fa-arrow-right"></i></button>
+        <a class="btn-link" href="../index.html"><i class="fa-solid fa-arrow-left"></i>Voltar</a>
+        <button class="btn-login" onclick="registrar()">Registrar</button>
       </div>
     </div>
   </div>
 </body>
 
-<script src="./js/script-form.js"></script>
+<script src="../js/registrar.js"></script>
 
 <script src="https://kit.fontawesome.com/b6e1d17d33.js" crossorigin="anonymous"></script>
 
