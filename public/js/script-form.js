@@ -7,7 +7,7 @@ document.querySelector(".btn-login").addEventListener("click", function () {
     .signInWithEmailAndPassword(email, password)
     .then((userCredential) => {
       // Se as credenciais estiverem corretas, redirecionar para a página de escolha de controle
-      window.location.href = "./pages/escolha-controle.html";
+      window.location.href = "./pages/controle-despesas.html";
       alert("Bem vindo!");
     })
     .catch((error) => {

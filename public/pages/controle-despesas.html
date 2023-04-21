@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../css/style-controle.css" />
+  <script src="https://kit.fontawesome.com/b6e1d17d33.js" crossorigin="anonymous"></script>
+  <title>Controle de despesas</title>
+</head>
+
+<body>
+  <a class="botao-sair" href="../index.html"><i class="fa-solid fa-arrow-right-from-bracket"></i>Sair</a>
+  <h2>Controle de despesas</h2>
+
+  <div class="container">
+    <h4>Saldo atual</h4>
+
+    <h1 id="balance" class="balance">R$ 0.00</h1>
+
+    <div class="inc-exp-container">
+      <div>
+        <h4>Receitas</h4>
+        <p id="money-plus" class="money plus">+ R$0.00</p>
+      </div>
+
+      <div>
+        <h4>Despesas</h4>
+        <p id="money-minus" class="money minus">- R$0.00</p>
+      </div>
+    </div>
+
+    <h3>Transações</h3>
+
+    <ul id="transactions" class="transactions"></ul>
+
+    <h3>Adicionar transação</h3>
+
+    <form id="form">
+      <div class="form-control">
+        <label for="text">Nome</label>
+        <input autofocus type="text" id="text" placeholder="Nome da transação" required />
+      </div>
+
+      <div class="form-control">
+        <div class="valor">
+          <label for="amount">Valor</label>
+          <small class="explicacao">
+            (<span class="explicacao-receitas">Receitas:</span> "150" / <span class="explicacao-despesas">Despesas:</span> "-150")
+          </small>
+        </div>
+        <input type="text" id="amount" placeholder="Valor da transação" required />
+      </div>
+
+      <button class="btn">Adicionar</button>
+    </form>
+  </div>
+
+  <script src="../js/controle-despesas.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-firestore.js"></script>
+
+  <script>
+    // Initialize Firebase
+    var firebaseConfig = {
+      apiKey: "AIzaSyDrquZN4aqqAAZr2g60mFuUSkTHyOI84Eg",
+      authDomain: "despesasmart.firebaseapp.com",
+      projectId: "despesasmart",
+      storageBucket: "despesasmart.appspot.com",
+      messagingSenderId: "348685765695",
+      appId: "1:348685765695:web:4913207469c96328a13c8a",
+      measurementId: "G-CB8JDXKMDX"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    var auth = firebase.auth();
+  </script>
+
+</body>
+
+</html>

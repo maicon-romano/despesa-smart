@@ -19,9 +19,11 @@ body {
   font-family: "Lato", sans-serif;
 }
 
-.botao-voltar {
+.botao-sair {
+  display: flex;
+  gap: 4px;
   background: #f7f7f7;
-  padding: 10px 15px;
+  padding: 6px 12px;
   border-radius: 10px;
   border: 1px solid #cbcbcb;
   color: #000;
@@ -33,10 +35,8 @@ body {
   transition: 0.4s;
 }
 
-.botao-voltar:hover {
+.botao-sair:hover {
   background-color: #dddddd;
-  padding: 12px 17px;
-  font-size: 1.1rem;
 }
 
 .container {
@@ -68,6 +68,7 @@ h4 {
   display: flex;
   justify-content: space-between;
   margin: 20px 0;
+  border-radius: 10px;
 }
 
 .inc-exp-container > div {
@@ -98,10 +99,9 @@ label {
   margin: 10px 0;
 }
 
-input[type="text"],
-input[type="number"] {
+input[type="text"] {
   border: 1px solid #dedede;
-  border-radius: 2px;
+  border-radius: 10px;
   display: block;
   font-size: 16px;
   padding: 10px;
@@ -120,6 +120,7 @@ input[type="number"] {
   padding: 10px;
   width: 100%;
   font-weight: bold;
+  border-radius: 10px;
 }
 
 .btn:focus,
@@ -150,6 +151,26 @@ input[type="number"] {
 
 .transactions li.minus {
   border-right: 5px solid #c0392b;
+}
+
+.valor {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.explicacao {
+  font-size: 12px;
+}
+
+.explicacao-receitas {
+  color: #016d2e;
+  font-weight: bold;
+}
+
+.explicacao-despesas {
+  color: #c0392b;
+  font-weight: bold;
 }
 
 .delete-btn {
