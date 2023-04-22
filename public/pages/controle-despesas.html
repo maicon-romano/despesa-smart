@@ -6,11 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../css/style-controle.css" />
   <script src="https://kit.fontawesome.com/b6e1d17d33.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-firestore.js"></script>
   <title>Controle de despesas</title>
 </head>
 
 <body>
-  <a class="botao-sair" href="../index.html"><i class="fa-solid fa-arrow-right-from-bracket"></i>Sair</a>
+  <a class="botao-sair" id="logout-button" href="../index.html"><i class="fa-solid fa-arrow-right-from-bracket"></i>Sair</a>
   <h2>Controle de despesas</h2>
 
   <div class="container">
@@ -57,27 +60,6 @@
   </div>
 
   <script src="../js/controle-despesas.js"></script>
-
-  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-firestore.js"></script>
-
-  <script>
-    // Initialize Firebase
-    var firebaseConfig = {
-      apiKey: "AIzaSyDrquZN4aqqAAZr2g60mFuUSkTHyOI84Eg",
-      authDomain: "despesasmart.firebaseapp.com",
-      projectId: "despesasmart",
-      storageBucket: "despesasmart.appspot.com",
-      messagingSenderId: "348685765695",
-      appId: "1:348685765695:web:4913207469c96328a13c8a",
-      measurementId: "G-CB8JDXKMDX"
-    };
-    firebase.initializeApp(firebaseConfig);
-
-    var auth = firebase.auth();
-  </script>
-
 </body>
 
 </html>
