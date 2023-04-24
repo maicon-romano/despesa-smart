@@ -113,9 +113,9 @@ const addTransactionIntoDOM = ({ id, description, value }) => {
   li.classList.add(CSSClass);
   li.setAttribute("data-id", id);
   li.innerHTML = `
-    ${description}
-    <span>${operator} R$ ${valueWithoutOperator}</span>
-    <button class="delete-btn">x</button>
+  ${description}
+  <span>${operator} R$ ${valueWithoutOperator}</span>
+  <button class="delete-btn">x</button>
   `;
   transactionsUl.append(li);
 };
@@ -280,4 +280,48 @@ logoutButton.addEventListener("click", () => {
     .catch((error) => {
       console.error("Erro ao desconectar usuário:", error);
     });
+});
+
+const todosButton = document.getElementById("filtrar-todos");
+const receitasButton = document.getElementById("filtrar-receitas");
+const despesasButton = document.getElementById("filtrar-despesas");
+
+// Função para filtrar as transações
+const filtrarTransacoes = (tipo, botao) => {
+  const transacoesFiltradas = transactions.filter((t) => {
+    if (tipo === "receitas") {
+      return t.value > 0;
+    } else if (tipo === "despesas") {
+      return t.value < 0;
+    } else {
+      return true;
+    }
+  });
+
+  // Limpar a lista de transações e adicioná-las novamente filtradas
+  transactionsUl.innerHTML = "";
+  transacoesFiltradas.forEach(addTransactionIntoDOM);
+  updateBalanceValues();
+
+  // Remover o ícone de filtro de todos os botões de filtro
+  const filterButtons = document.querySelectorAll(".botao-filtro");
+  filterButtons.forEach((button) => {
+    button.innerHTML = button.textContent;
+  });
+
+  // Adicionar o ícone de filtro ao botão correspondente
+  botao.innerHTML = '<i class="fa-solid fa-filter"></i>' + botao.textContent;
+};
+
+// Adicionar um listener de clique para cada botão de filtro
+todosButton.addEventListener("click", () => {
+  filtrarTransacoes("todos", todosButton);
+});
+
+receitasButton.addEventListener("click", () => {
+  filtrarTransacoes("receitas", receitasButton);
+});
+
+despesasButton.addEventListener("click", () => {
+  filtrarTransacoes("despesas", despesasButton);
 });

@@ -40,8 +40,8 @@ body * {
 }
 
 .left-login-image {
-  width: 35vw;
-  height: 60vh;
+  max-width: 100%;
+  height: auto;
 }
 
 .card-login {
@@ -155,9 +155,7 @@ body * {
     height: auto;
   }
   .left-login-image {
-    width: 40vw;
-    height: auto;
-    margin-bottom: 20px;
+    display: none;
   }
   .card-login {
     width: 90%;

@@ -19,6 +19,33 @@ body {
   font-family: "Lato", sans-serif;
 }
 
+.filtros {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.botao-filtro {
+  background: #f7f7f7;
+  border: 2px solid #cbcbcb;
+  border-radius: 10px;
+  padding: 4px 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.4s;
+}
+
+#filtrar-receitas {
+  color: #087937;
+}
+
+#filtrar-despesas {
+  color: #d80202;
+}
+
+.botao-filtro:hover {
+  background: #d4d4d4;
+}
+
 .botao-sair {
   display: flex;
   gap: 4px;
