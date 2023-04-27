@@ -46,19 +46,21 @@
     <h3>Adicionar transação</h3>
 
     <form id="form">
+      <label for="selecao-transacao">Receita ou Despesa?</label>
+      <select class="selecionar-opcao" id="selecao-transacao">
+        <option disabled selected>Selecione o que vai adicionar:</option>
+        <option value="receita">Receita</option>
+        <option value="despesa">Despesa</option>
+      </select>
+
       <div class="form-control">
         <label for="text">Nome</label>
-        <input autofocus type="text" id="text" placeholder="Nome da transação" required />
+        <input autofocus type="text" id="text" placeholder="Salário / Conta de Energia" required />
       </div>
 
       <div class="form-control">
-        <div class="valor">
-          <label for="amount">Valor</label>
-          <small class="explicacao">
-            (<span class="explicacao-receitas">Receitas:</span> "150" / <span class="explicacao-despesas">Despesas:</span> "-150")
-          </small>
-        </div>
-        <input type="text" id="amount" placeholder="Valor da transação" required />
+        <label for="amount">Valor</label>
+        <input type="text" id="amount" inputmode="numeric" placeholder="0,00" required />
       </div>
 
       <button class="btn">Adicionar</button>

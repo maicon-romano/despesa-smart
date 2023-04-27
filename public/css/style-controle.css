@@ -34,6 +34,15 @@ body {
   transition: 0.4s;
 }
 
+#selecao-transacao {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #dedede;
+  border-radius: 10px;
+  display: block;
+  font-size: 1rem;
+}
+
 #filtrar-receitas {
   color: #087937;
 }

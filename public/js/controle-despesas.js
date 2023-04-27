@@ -68,7 +68,7 @@ const addTransactionToDB = async (transaction) => {
   try {
     const docRef = await userTransactionsRef.add({
       description: transaction.description,
-      value: transaction.value,
+      value: transaction.value.toString().replace(",", "."), // conversão para string e substituição da vírgula pelo ponto
     });
     console.log("Transação adicionada ao banco de dados");
     transaction.id = docRef.id;
@@ -112,11 +112,7 @@ const addTransactionIntoDOM = ({ id, description, value }) => {
 
   li.classList.add(CSSClass);
   li.setAttribute("data-id", id);
-  li.innerHTML = `
-  ${description}
-  <span>${operator} R$ ${valueWithoutOperator}</span>
-  <button class="delete-btn">x</button>
-  `;
+  li.innerHTML = `${description} <span>${operator} R$ ${valueWithoutOperator}</span> <button class="delete-btn">x</button> `;
   transactionsUl.append(li);
 };
 
@@ -229,13 +225,16 @@ auth.onAuthStateChanged((user) => {
   }
 });
 
+const selecaoTransacao = document.getElementById("selecao-transacao");
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const description = inputTransactionName.value.trim();
-  const value = parseFloat(inputTransactionAmount.value);
+  const value = parseFloat(inputTransactionAmount.value.replace(",", "."));
+  const type = selecaoTransacao.value;
 
-  if (!description || isNaN(value)) {
+  if (!description || isNaN(value) || !type) {
     console.error(
       "Os campos de entrada devem ser preenchidos e o valor deve ser um número válido"
     );
@@ -245,15 +244,15 @@ form.addEventListener("submit", (event) => {
   const transaction = {
     id: "",
     description: description,
-    value: value,
+    value: type === "despesa" ? -value : value, // ajuste para definir se é despesa ou receita
   };
   transactions.push(transaction);
-  addTransactionToDB(transaction); // Chame addTransactionToDB aqui
+  addTransactionToDB(transaction);
   addTransactionIntoDOM(transaction);
   updateBalanceValues();
-  // getTransactionsFromDB(); // Chame getTransactionsFromDB aqui
   inputTransactionName.value = "";
   inputTransactionAmount.value = "";
+  selecaoTransacao.value = ""; // limpa a seleção do usuário após a transação ser adicionada
 });
 
 transactionsUl.addEventListener("click", (event) => {
