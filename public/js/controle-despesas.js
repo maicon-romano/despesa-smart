@@ -114,6 +114,29 @@ const addTransactionIntoDOM = ({ id, description, value }) => {
   li.setAttribute("data-id", id);
   li.innerHTML = `${description} <span>${operator} R$ ${valueWithoutOperator}</span> <button class="delete-btn">x</button> `;
   transactionsUl.append(li);
+
+  // Adiciona o reconhecedor de gestos do Hammer.js
+  const liHammer = new Hammer(li);
+  liHammer.get("pan").set({ direction: Hammer.DIRECTION_HORIZONTAL });
+
+  liHammer.on("panstart", (ev) => {
+    li.style.transition = ""; // Remove a transição ao iniciar o movimento
+  });
+
+  liHammer.on("panmove", (ev) => {
+    handlePan(ev, li); // Atualiza a posição da li conforme o movimento
+  });
+
+  liHammer.on("panend", (ev) => {
+    li.style.transition = "transform 0.3s"; // Adiciona a transição ao finalizar o movimento
+    if (Math.abs(ev.deltaX) > li.getBoundingClientRect().width / 2) {
+      animateAndRemoveListItem(li, id);
+    } else {
+      li.style.transform = "";
+    }
+  });
+
+  liHammer.on("swipe", (ev) => handleSwipe(ev, id));
 };
 
 const getExpenses = (transactionsAmounts) => {
@@ -327,3 +350,25 @@ receitasButton.addEventListener("click", () => {
 despesasButton.addEventListener("click", () => {
   filtrarTransacoes("despesas", despesasButton);
 });
+
+const handleSwipe = (ev, transactionId) => {
+  if (
+    ev.direction === Hammer.DIRECTION_LEFT ||
+    ev.direction === Hammer.DIRECTION_RIGHT
+  ) {
+    animateAndRemoveListItem(ev.target.closest("li"), transactionId);
+  }
+};
+
+const animateAndRemoveListItem = (li, transactionId) => {
+  li.style.transition = "transform 0.3s";
+  li.style.transform = `translateX(${li.getBoundingClientRect().width}px)`;
+  setTimeout(() => {
+    removeTransaction(transactionId);
+  }, 300);
+};
+
+const handlePan = (ev, li) => {
+  const deltaX = ev.deltaX;
+  li.style.transform = `translateX(${deltaX}px)`;
+};
