@@ -116,23 +116,25 @@ const addTransactionIntoDOM = ({ id, description, value }) => {
   transactionsUl.append(li);
 };
 
-const getExpenses = (transactionsAmounts) =>
-  Math.abs(
+const getExpenses = (transactionsAmounts) => {
+  return Math.abs(
     transactionsAmounts
       .filter((value) => value < 0)
-      .reduce((accumulator, value) => accumulator + value, 0)
+      .reduce((accumulator, value) => accumulator + Number(value), 0)
   ).toFixed(2);
+};
 
 const getIncome = (transactionsAmounts) =>
   transactionsAmounts
     .filter((value) => value > 0)
-    .reduce((accumulator, value) => accumulator + value, 0)
+    .reduce((accumulator, value) => accumulator + Number(value), 0)
     .toFixed(2);
 
-const getTotal = (transactionsAmounts) =>
-  transactionsAmounts
-    .reduce((accumulator, transaction) => accumulator + transaction, 0)
+const getTotal = (transactionsAmounts) => {
+  return transactionsAmounts
+    .reduce((accumulator, transaction) => accumulator + Number(transaction), 0)
     .toFixed(2);
+};
 
 const updateBalanceValues = () => {
   const transactionsAmounts = transactions.map(({ value }) => value);
@@ -217,7 +219,7 @@ const updateTransactionsInDB = () => {
 auth.onAuthStateChanged((user) => {
   if (user) {
     currentUser = user;
-    console.log("Usuário autenticado:", user.uid);
+    console.log("Usuário autenticado");
     getTransactionsFromDB();
   } else {
     console.log("Usuário não autenticado");
@@ -244,8 +246,9 @@ form.addEventListener("submit", (event) => {
   const transaction = {
     id: "",
     description: description,
-    value: type === "despesa" ? -value : value, // ajuste para definir se é despesa ou receita
+    value: type === "despesa" ? -Math.abs(value) : Math.abs(value),
   };
+
   transactions.push(transaction);
   addTransactionToDB(transaction);
   addTransactionIntoDOM(transaction);
