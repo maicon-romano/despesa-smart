@@ -55,6 +55,36 @@ body {
   background: #d4d4d4;
 }
 
+#atualizar-contas-botao {
+  padding: 4px 12px;
+  border: 1px solid #cbcbcb;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.4s;
+}
+#atualizar-contas-botao:hover {
+  background: #dddddd;
+}
+
+div.transaction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.status-btn {
+  border: none;
+  padding: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
 .botao-sair {
   display: flex;
   gap: 4px;
@@ -89,7 +119,7 @@ h1 {
 h3 {
   border-bottom: 1px solid #bbb;
   padding-bottom: 10px;
-  margin: 40px 0 10px;
+  margin: 20px 0 10px;
 }
 
 h4 {
@@ -142,6 +172,30 @@ input[type="text"] {
   font-size: 16px;
   padding: 10px;
   width: 100%;
+}
+
+.atualizar-contas {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.reset-contas {
+  font-size: 1.1rem;
+  margin: 0px;
+  font-weight: bold;
+}
+
+.payment-btn {
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 10px;
+  border-radius: 5px;
 }
 
 .btn {

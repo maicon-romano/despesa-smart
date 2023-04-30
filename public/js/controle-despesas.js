@@ -38,6 +38,7 @@ const getTransactionsFromDB = async () => {
         id: doc.id,
         description: doc.data().description,
         value: doc.data().value,
+        paid: doc.data().paid, // Adicione o atributo 'paid' aqui
       };
       transactions.push(transaction);
     });
@@ -69,6 +70,7 @@ const addTransactionToDB = async (transaction) => {
     const docRef = await userTransactionsRef.add({
       description: transaction.description,
       value: transaction.value.toString().replace(",", "."), // conversão para string e substituição da vírgula pelo ponto
+      paid: false, // Adicione o atributo 'paid' aqui
     });
     console.log("Transação adicionada ao banco de dados");
     transaction.id = docRef.id;
@@ -104,7 +106,72 @@ const removeTransaction = (transactionId) => {
   init();
 };
 
-const addTransactionIntoDOM = ({ id, description, value }) => {
+const togglePaymentStatus = async (button, transactionId) => {
+  const userId = currentUser.uid;
+  const transactionRef = db
+    .collection("transactions")
+    .doc(userId)
+    .collection("userTransactions")
+    .doc(transactionId);
+
+  const transactionIndex = transactions.findIndex(
+    (t) => t.id === transactionId
+  );
+  const paidStatus = !transactions[transactionIndex].paid;
+
+  button.style.backgroundColor = paidStatus ? "green" : "red";
+  button.textContent = paidStatus ? "Pago" : "Em aberto";
+
+  try {
+    await transactionRef.update({
+      paid: paidStatus,
+    });
+
+    // Atualiza o valor "paid" no array "transactions"
+    transactions[transactionIndex].paid = paidStatus;
+  } catch (error) {
+    console.error("Erro ao atualizar status de pagamento:", error);
+  }
+};
+
+const limparBotoesPago = async () => {
+  const paymentButtons = document.querySelectorAll(".payment-btn");
+  paymentButtons.forEach((button) => {
+    button.style.backgroundColor = "red";
+    button.textContent = "Em aberto";
+  });
+
+  try {
+    const userId = currentUser.uid;
+    const userTransactionsRef = db
+      .collection("transactions")
+      .doc(userId)
+      .collection("userTransactions");
+
+    const querySnapshot = await userTransactionsRef.get();
+    querySnapshot.forEach(async (doc) => {
+      const transactionIndex = transactions.findIndex((t) => t.id === doc.id);
+      if (transactionIndex !== -1) {
+        transactions[transactionIndex].paid = false;
+        await userTransactionsRef.doc(doc.id).update({
+          paid: false,
+        });
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar informações no banco de dados:", error);
+  }
+
+  init();
+};
+
+const atualizarContasBotao = document.getElementById("atualizar-contas-botao");
+
+atualizarContasBotao.addEventListener("click", () => {
+  limparBotoesPago();
+});
+
+const addTransactionIntoDOM = ({ id, description, value, paid }) => {
   const operator = value < 0 ? "-" : "+";
   const CSSClass = value < 0 ? "minus" : "plus";
   const valueWithoutOperator = Math.abs(value).toFixed(2);
@@ -112,7 +179,24 @@ const addTransactionIntoDOM = ({ id, description, value }) => {
 
   li.classList.add(CSSClass);
   li.setAttribute("data-id", id);
-  li.innerHTML = `${description} <span>${operator} R$ ${valueWithoutOperator}</span> <button class="delete-btn">x</button> `;
+
+  const paymentButton = document.createElement("button");
+  if (CSSClass === "minus") {
+    paymentButton.classList.add("payment-btn");
+    paymentButton.style.backgroundColor = paid ? "green" : "red";
+    paymentButton.style.color = "white";
+    paymentButton.textContent = paid ? "Pago" : "Em aberto";
+    paymentButton.addEventListener("click", () =>
+      togglePaymentStatus(paymentButton, id)
+    );
+  }
+
+  li.innerHTML = `${description} <span>${operator} R$ ${valueWithoutOperator}</span> <button class="delete-btn">x</button>`;
+
+  if (CSSClass === "minus") {
+    li.appendChild(paymentButton);
+  }
+
   transactionsUl.append(li);
 
   // Adiciona o reconhecedor de gestos do Hammer.js
