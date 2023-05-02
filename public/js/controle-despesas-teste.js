@@ -14,7 +14,7 @@ const db = window.firebase.firestore();
 let currentUser;
 let transactions = [];
 
-const transactionsUl = document.getElementById("transactions");
+const transactionTable = document.getElementById("transaction-table");
 const incomeDisplay = document.getElementById("money-plus");
 const expenseDisplay = document.getElementById("money-minus");
 const balanceDisplay = document.getElementById("balance");
@@ -171,17 +171,35 @@ atualizarContasBotao.addEventListener("click", () => {
   limparBotoesPago();
 });
 
+const transactionsTableBody = document.querySelector(
+  "#transaction-table tbody"
+);
+
 const addTransactionIntoDOM = ({ id, description, value, paid }) => {
-  const operator = value < 0 ? "-" : "+";
-  const CSSClass = value < 0 ? "minus" : "plus";
-  const valueWithoutOperator = Math.abs(value).toFixed(2);
-  const li = document.createElement("li");
+  const row = transactionsTableBody.insertRow();
 
-  li.classList.add(CSSClass);
-  li.setAttribute("data-id", id);
+  row.setAttribute("data-id", id);
 
-  const paymentButton = document.createElement("button");
-  if (CSSClass === "minus") {
+  const indexCell = row.insertCell(0);
+  const descriptionCell = row.insertCell(1);
+  const valueCell = row.insertCell(2);
+  const statusCell = row.insertCell(3);
+
+  // Adiciona o botão de editar na coluna "#"
+  const editButton = document.createElement("button");
+  editButton.classList.add("edit-btn");
+  editButton.textContent = "✏️";
+  editButton.addEventListener("click", () => {
+    // Adicione aqui a função para editar a informação da transação
+  });
+
+  indexCell.appendChild(editButton);
+  descriptionCell.textContent = description;
+  valueCell.textContent = Number(value).toFixed(2);
+
+  // Adiciona o botão de pagamento apenas se o valor for negativo (despesa)
+  if (value < 0) {
+    const paymentButton = document.createElement("button");
     paymentButton.classList.add("payment-btn");
     paymentButton.style.backgroundColor = paid ? "green" : "red";
     paymentButton.style.color = "white";
@@ -189,39 +207,42 @@ const addTransactionIntoDOM = ({ id, description, value, paid }) => {
     paymentButton.addEventListener("click", () =>
       togglePaymentStatus(paymentButton, id)
     );
+    statusCell.appendChild(paymentButton);
+  } else {
+    statusCell.textContent = "N/A"; // Coloca "N/A" no status das receitas
   }
-
-  li.innerHTML = `<button class="edit-btn">✏️</button> ${description} <span>${operator} R$ ${valueWithoutOperator}</span> <button class="delete-btn">x</button>`;
-
-  if (CSSClass === "minus") {
-    li.appendChild(paymentButton);
-  }
-
-  transactionsUl.append(li);
 
   // Adiciona o reconhecedor de gestos do Hammer.js
-  const liHammer = new Hammer(li);
-  liHammer.get("pan").set({ direction: Hammer.DIRECTION_HORIZONTAL });
+  const rowHammer = new Hammer(row);
+  rowHammer.get("pan").set({ direction: Hammer.DIRECTION_HORIZONTAL });
 
-  liHammer.on("panstart", (ev) => {
-    li.style.transition = ""; // Remove a transição ao iniciar o movimento
+  rowHammer.on("panstart", (ev) => {
+    row.style.transition = ""; // Remove a transição ao iniciar o movimento
   });
 
-  liHammer.on("panmove", (ev) => {
-    handlePan(ev, li); // Atualiza a posição da li conforme o movimento
+  rowHammer.on("panmove", (ev) => {
+    handlePan(ev, row); // Atualiza a posição da row conforme o movimento
   });
 
-  liHammer.on("panend", (ev) => {
-    li.style.transition = "transform 0.3s"; // Adiciona a transição ao finalizar o movimento
-    if (Math.abs(ev.deltaX) > li.getBoundingClientRect().width / 2) {
-      animateAndRemoveListItem(li, id);
+  rowHammer.on("panend", (ev) => {
+    row.style.transition = "transform 0.3s"; // Adiciona a transição ao finalizar o movimento
+    if (Math.abs(ev.deltaX) > row.getBoundingClientRect().width / 2) {
+      animateAndRemoveListItem(row, id);
     } else {
-      li.style.transform = "";
+      row.style.transform = "";
     }
   });
 
-  liHammer.on("swipe", (ev) => handleSwipe(ev, id));
+  rowHammer.on("swipe", (ev) => handleSwipe(ev, id));
 };
+
+transactionsTableBody.addEventListener("click", (event) => {
+  if (event.target.classList.contains("delete-btn")) {
+    const row = event.target.closest("tr");
+    const transactionId = row.getAttribute("data-id");
+    removeTransaction(transactionId);
+  }
+});
 
 const openEditMenu = async (transactionId) => {
   const transactionIndex = transactions.findIndex(
@@ -290,7 +311,7 @@ const updateBalanceValues = () => {
 };
 
 const init = () => {
-  transactionsUl.innerHTML = "";
+  transactionsTableBody.innerHTML = "";
   transactions.forEach(addTransactionIntoDOM);
   updateBalanceValues();
 };
@@ -404,17 +425,16 @@ form.addEventListener("submit", (event) => {
   selecaoTransacao.value = ""; // limpa a seleção do usuário após a transação ser adicionada
 });
 
-transactionsUl.addEventListener("click", (event) => {
-  const li = event.target.closest("li");
-  const transactionId = li.getAttribute("data-id");
+// transactionsUl.addEventListener("click", (event) => {
+//   const li = event.target.closest("li");
+//   const transactionId = li.getAttribute("data-id");
 
-  if (event.target.classList.contains("delete-btn")) {
-    removeTransaction(transactionId);
-  } else if (event.target.classList.contains("edit-btn")) {
-    openEditMenu(transactionId);
-  }
-});
-
+//   if (event.target.classList.contains("delete-btn")) {
+//     removeTransaction(transactionId);
+//   } else if (event.target.classList.contains("edit-btn")) {
+//     openEditMenu(transactionId);
+//   }
+// });
 const logoutButton = document.getElementById("logout-button");
 logoutButton.addEventListener("click", () => {
   auth
