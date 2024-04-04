@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../css/style-controle.css" />
+  <script src="https://kit.fontawesome.com/b6e1d17d33.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/png" href="../images/favicon.png">
+  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-firestore.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+  <!-- Adicione o CSS do DataTables -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css">
+
+  <!-- Adicione o jQuery e o JS do DataTables -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+
+  <title>Controle de despesas</title>
+</head>
+
+<body>
+  <a class="botao-sair" id="logout-button" href="../index.html"><i class="fa-solid fa-arrow-right-from-bracket"></i>Sair</a>
+  <h2>Controle de despesas</h2>
+
+  <div class="container">
+    <h4>Saldo atual</h4>
+
+    <h1 id="balance" class="balance">R$ 0.00</h1>
+
+    <div class="inc-exp-container">
+      <div>
+        <h4>Receitas</h4>
+        <p id="money-plus" class="money plus">+ R$0.00</p>
+      </div>
+
+      <div>
+        <h4>Despesas</h4>
+        <p id="money-minus" class="money minus">- R$0.00</p>
+      </div>
+    </div>
+
+    <div class="atualizar-contas">
+      <p class="reset-contas">Limpar Status de Pago:</p>
+      <button id="atualizar-contas-botao" class="botao-atualizar-contas">Limpar Status</button>
+    </div>
+
+    <h3>Transações</h3>
+    <div class="filtros">
+      <button class="botao-filtro" id="filtrar-todos"> Todos</button>
+      <button class="botao-filtro" id="filtrar-receitas"> Receitas</button>
+      <button class="botao-filtro" id="filtrar-despesas"> Despesas</button>
+    </div>
+
+    <div class="bloco-transações">
+      <ul id="transactions" class="transactions"></ul>
+    </div>
+
+    <h3>Adicionar transação</h3>
+
+    <form id="form">
+      <label for="selecao-transacao">Receita ou Despesa?</label>
+      <select class="selecionar-opcao" id="selecao-transacao">
+        <option disabled selected>Selecione o que vai adicionar:</option>
+        <option value="receita">Receita</option>
+        <option value="despesa">Despesa</option>
+      </select>
+
+      <div class="form-control">
+        <label for="text">Nome</label>
+        <input autofocus type="text" id="text" placeholder="Salário / Conta de Energia" required />
+      </div>
+
+      <div class="form-control">
+        <label for="amount">Valor</label>
+        <input type="text" id="amount" inputmode="numeric" placeholder="0,00" required />
+      </div>
+
+      <button class="btn">Adicionar</button>
+    </form>
+  </div>
+
+  <script src="../js/controle-despesas.js"></script>
+</body>
+
+</html>

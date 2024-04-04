@@ -14,9 +14,7 @@ const db = window.firebase.firestore();
 let currentUser;
 let transactions = [];
 
-const transactionsUl = document
-  .getElementById("transactions")
-  .querySelector("tbody");
+const transactionsUl = document.getElementById("transactions");
 const incomeDisplay = document.getElementById("money-plus");
 const expenseDisplay = document.getElementById("money-minus");
 const balanceDisplay = document.getElementById("balance");
@@ -24,31 +22,41 @@ const form = document.getElementById("form");
 const inputTransactionName = document.getElementById("text");
 const inputTransactionAmount = document.getElementById("amount");
 
-const getTransactionsFromDB = () => {
+const getTransactionsFromDB = async () => {
+  transactions = []; // Limpa o array de transações antes de buscar no banco de dados
+
   const userId = currentUser.uid;
   const userTransactionsRef = db
     .collection("transactions")
     .doc(userId)
     .collection("userTransactions");
 
-  userTransactionsRef.onSnapshot(
-    (querySnapshot) => {
-      transactions = []; // Limpa o array de transações a cada atualização
-      querySnapshot.forEach((doc) => {
-        const transaction = {
-          id: doc.id,
-          description: doc.data().description,
-          value: doc.data().value,
-          paid: doc.data().paid,
-        };
-        transactions.push(transaction);
+  try {
+    const querySnapshot = await userTransactionsRef.get();
+    querySnapshot.forEach((doc) => {
+      const transaction = {
+        id: doc.id,
+        description: doc.data().description,
+        value: doc.data().value,
+        paid: doc.data().paid, // Adicione o atributo 'paid' aqui
+      };
+      transactions.push(transaction);
+    });
+
+    // Adicionar transações pendentes
+    const pendingTransactions = transactions.filter((t) => !t.id);
+    for (const pendingTransaction of pendingTransactions) {
+      const docRef = await userTransactionsRef.add({
+        description: pendingTransaction.description,
+        value: pendingTransaction.value,
       });
-      init(); // Re-inicializa a aplicação a cada atualização do banco de dados
-    },
-    (error) => {
-      console.error("Erro ao inscrever para atualizações:", error);
+      pendingTransaction.id = docRef.id;
     }
-  );
+
+    init();
+  } catch (error) {
+    console.error("Erro ao recuperar transações do usuário:", error);
+  }
 };
 
 const addTransactionToDB = async (transaction) => {
@@ -58,15 +66,18 @@ const addTransactionToDB = async (transaction) => {
     .doc(userId)
     .collection("userTransactions");
 
-  await userTransactionsRef
-    .add({
+  try {
+    const docRef = await userTransactionsRef.add({
       description: transaction.description,
-      value: transaction.value.toString().replace(",", "."),
-      paid: transaction.paid,
-    })
-    .catch((error) => {
-      console.error("Erro ao adicionar transação ao banco de dados:", error);
+      value: transaction.value.toString().replace(",", "."), // conversão para string e substituição da vírgula pelo ponto
+      paid: false, // Adicione o atributo 'paid' aqui
     });
+    console.log("Transação adicionada ao banco de dados");
+    transaction.id = docRef.id;
+    init();
+  } catch (error) {
+    console.error("Erro ao adicionar transação ao banco de dados:", error);
+  }
 };
 
 const removeTransactionFromDB = (transactionId) => {
@@ -87,13 +98,12 @@ const removeTransactionFromDB = (transactionId) => {
     });
 };
 
-// Garanta que `calculateAndDisplayBalances` seja chamada em outros lugares onde as transações são modificadas
 const removeTransaction = (transactionId) => {
   transactions = transactions.filter(
     (transaction) => transaction.id !== transactionId
   );
   removeTransactionFromDB(transactionId);
-  calculateAndDisplayBalances(); // Atualiza os valores depois de remover uma transação
+  init();
 };
 
 const togglePaymentStatus = async (button, transactionId) => {
@@ -119,7 +129,6 @@ const togglePaymentStatus = async (button, transactionId) => {
 
     // Atualiza o valor "paid" no array "transactions"
     transactions[transactionIndex].paid = paidStatus;
-    calculateAndDisplayBalances(); // Atualiza o saldo e totais imediatamente
   } catch (error) {
     console.error("Erro ao atualizar status de pagamento:", error);
   }
@@ -166,25 +175,52 @@ const addTransactionIntoDOM = ({ id, description, value, paid }) => {
   const operator = value < 0 ? "-" : "+";
   const CSSClass = value < 0 ? "minus" : "plus";
   const valueWithoutOperator = Math.abs(value).toFixed(2);
-  const paymentButtonHtml = paid ? "Pago" : "Em aberto";
-  const paymentButton = `<button class="payment-btn btn ${
-    paid ? "btn-success" : "btn-danger"
-  }">${paymentButtonHtml}</button>`;
-  const deleteButton = `<button class="del-btn btn btn-danger"><i class="fa-solid fa-trash"></i></button>`;
+  const li = document.createElement("li");
 
-  let rowContent = `
-    <td><button class="edit-btn btn btn-primary">✏️</button></td>
-    <td>${description}</td>
-    <td>${operator} R$ ${valueWithoutOperator}</td>
-    <td>${CSSClass === "minus" ? paymentButton : ""}</td>
-    <td>${deleteButton}</td>`;
+  li.classList.add(CSSClass);
+  li.setAttribute("data-id", id);
 
-  const row = document.createElement("tr");
-  row.classList.add(CSSClass);
-  row.setAttribute("data-id", id);
-  row.innerHTML = rowContent;
+  const paymentButton = document.createElement("button");
+  if (CSSClass === "minus") {
+    paymentButton.classList.add("payment-btn");
+    paymentButton.style.backgroundColor = paid ? "green" : "red";
+    paymentButton.style.color = "white";
+    paymentButton.textContent = paid ? "Pago" : "Em aberto";
+    paymentButton.addEventListener("click", () =>
+      togglePaymentStatus(paymentButton, id)
+    );
+  }
 
-  transactionsUl.appendChild(row);
+  li.innerHTML = `<button class="edit-btn">✏️</button> ${description} <span>${operator} R$ ${valueWithoutOperator}</span> <button class="delete-btn">x</button>`;
+
+  if (CSSClass === "minus") {
+    li.appendChild(paymentButton);
+  }
+
+  transactionsUl.append(li);
+
+  // Adiciona o reconhecedor de gestos do Hammer.js
+  const liHammer = new Hammer(li);
+  liHammer.get("pan").set({ direction: Hammer.DIRECTION_HORIZONTAL });
+
+  liHammer.on("panstart", (ev) => {
+    li.style.transition = ""; // Remove a transição ao iniciar o movimento
+  });
+
+  liHammer.on("panmove", (ev) => {
+    handlePan(ev, li); // Atualiza a posição da li conforme o movimento
+  });
+
+  liHammer.on("panend", (ev) => {
+    li.style.transition = "transform 0.3s"; // Adiciona a transição ao finalizar o movimento
+    if (Math.abs(ev.deltaX) > li.getBoundingClientRect().width / 2) {
+      animateAndRemoveListItem(li, id);
+    } else {
+      li.style.transform = "";
+    }
+  });
+
+  liHammer.on("swipe", (ev) => handleSwipe(ev, id));
 };
 
 const openEditMenu = async (transactionId) => {
@@ -253,37 +289,10 @@ const updateBalanceValues = () => {
   expenseDisplay.textContent = `R$ ${getExpenses(transactionsAmounts)}`;
 };
 
-// Você deve chamar esta função sempre que precisar atualizar os valores na interface do usuário.
-const calculateAndDisplayBalances = () => {
-  const totalIncome = transactions
-    .filter((t) => t.value > 0)
-    .reduce((acc, t) => acc + Number(t.value), 0); // Garantindo conversão para número
-
-  const totalExpensesPaid = transactions
-    .filter((t) => t.value < 0 && t.paid)
-    .reduce((acc, t) => acc + Number(t.value), 0); // Garantindo conversão para número
-
-  const totalExpenses = transactions
-    .filter((t) => t.value < 0)
-    .reduce((acc, t) => acc + Number(t.value), 0); // Garantindo conversão para número
-
-  const currentBalance = totalIncome + totalExpensesPaid; // Soma de números
-  const subtotal = totalIncome + totalExpenses; // Soma de números
-
-  // Atualizando os elementos na interface do usuário
-  balanceDisplay.textContent = `R$ ${currentBalance.toFixed(2)}`;
-  incomeDisplay.textContent = `R$ ${totalIncome.toFixed(2)}`;
-  expenseDisplay.textContent = `R$ ${Math.abs(totalExpenses).toFixed(2)}`;
-  document.getElementById(
-    "subtotal"
-  ).textContent = `Subtotal: R$ ${subtotal.toFixed(2)}`;
-};
-
-// Certifique-se de chamar calculateAndDisplayBalances no final de funções que alteram os dados, como init, após adicionar, remover ou alterar transações
 const init = () => {
   transactionsUl.innerHTML = "";
   transactions.forEach(addTransactionIntoDOM);
-  calculateAndDisplayBalances(); // Atualiza todos os valores na UI
+  updateBalanceValues();
 };
 
 const updateTransactionsInDB = () => {
@@ -366,65 +375,45 @@ auth.onAuthStateChanged((user) => {
 
 const selecaoTransacao = document.getElementById("selecao-transacao");
 
-transactionsUl.addEventListener("click", (event) => {
-  const tr = event.target.closest("tr");
-  const transactionId = tr.getAttribute("data-id");
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
 
-  if (event.target.classList.contains("del-btn")) {
-    // Configura o modal de delete e o abre
-    const deleteModal = new bootstrap.Modal(
-      document.getElementById("deleteTransactionModal")
+  const description = inputTransactionName.value.trim();
+  const value = parseFloat(inputTransactionAmount.value.replace(",", "."));
+  const type = selecaoTransacao.value;
+
+  if (!description || isNaN(value) || !type) {
+    console.error(
+      "Os campos de entrada devem ser preenchidos e o valor deve ser um número válido"
     );
-    document.getElementById("confirmDelete").onclick = function () {
-      removeTransaction(transactionId);
-      deleteModal.hide();
-    };
-    deleteModal.show();
-  } else if (event.target.classList.contains("edit-btn")) {
-    // Preenche os dados no modal de edição
-    const transaction = transactions.find((t) => t.id === transactionId);
-    document.getElementById("editTransactionId").value = transactionId;
-    document.getElementById("editDescription").value = transaction.description;
-    document.getElementById("editValue").value = transaction.value;
-
-    // Configura o ouvinte de evento para o formulário de edição
-    const editForm = document.getElementById("editTransactionForm");
-    editForm.onsubmit = async function (e) {
-      e.preventDefault();
-      const newDescription = document.getElementById("editDescription").value;
-      const newValue = parseFloat(document.getElementById("editValue").value);
-
-      // Atualiza a transação no banco de dados
-      await updateTransaction(transactionId, {
-        description: newDescription,
-        value: newValue,
-      });
-      const editModal = bootstrap.Modal.getInstance(
-        document.getElementById("editTransactionModal")
-      );
-      editModal.hide();
-    };
-
-    const editModal = new bootstrap.Modal(
-      document.getElementById("editTransactionModal")
-    );
-    editModal.show();
+    return;
   }
+
+  const transaction = {
+    id: "",
+    description: description,
+    value: type === "despesa" ? -Math.abs(value) : Math.abs(value),
+  };
+
+  transactions.push(transaction);
+  addTransactionToDB(transaction);
+  addTransactionIntoDOM(transaction);
+  updateBalanceValues();
+  inputTransactionName.value = "";
+  inputTransactionAmount.value = "";
+  selecaoTransacao.value = ""; // limpa a seleção do usuário após a transação ser adicionada
 });
 
-// Função para atualizar uma transação
-const updateTransaction = async (transactionId, updatedTransaction) => {
-  const userId = currentUser.uid;
-  const transactionRef = db
-    .collection("transactions")
-    .doc(userId)
-    .collection("userTransactions")
-    .doc(transactionId);
+transactionsUl.addEventListener("click", (event) => {
+  const li = event.target.closest("li");
+  const transactionId = li.getAttribute("data-id");
 
-  await transactionRef.update(updatedTransaction).catch((error) => {
-    console.error("Erro ao atualizar transação no banco de dados:", error);
-  });
-};
+  if (event.target.classList.contains("delete-btn")) {
+    removeTransaction(transactionId);
+  } else if (event.target.classList.contains("edit-btn")) {
+    openEditMenu(transactionId);
+  }
+});
 
 const logoutButton = document.getElementById("logout-button");
 logoutButton.addEventListener("click", () => {
@@ -449,69 +438,63 @@ const receitasButton = document.getElementById("filtrar-receitas");
 const despesasButton = document.getElementById("filtrar-despesas");
 
 // Função para filtrar as transações
-document
-  .getElementById("filtro-tipo")
-  .addEventListener("change", filtrarTransacoes);
-document
-  .getElementById("filtro-status")
-  .addEventListener("change", filtrarTransacoes);
-
-function filtrarTransacoes() {
-  const tipoSelecionado = document.getElementById("filtro-tipo").value;
-  const statusSelecionado = document.getElementById("filtro-status").value;
-
-  let transacoesFiltradas = transactions.filter((transaction) => {
-    const filtroTipo =
-      tipoSelecionado === "todos" ||
-      (tipoSelecionado === "receitas" && transaction.value > 0) ||
-      (tipoSelecionado === "despesas" && transaction.value < 0);
-    const filtroStatus =
-      statusSelecionado === "todos" ||
-      (statusSelecionado === "pago" && transaction.paid) ||
-      (statusSelecionado === "em aberto" &&
-        transaction.value < 0 &&
-        !transaction.paid);
-
-    return filtroTipo && filtroStatus;
+const filtrarTransacoes = (tipo, botao) => {
+  const transacoesFiltradas = transactions.filter((t) => {
+    if (tipo === "receitas") {
+      return t.value > 0;
+    } else if (tipo === "despesas") {
+      return t.value < 0;
+    } else {
+      return true;
+    }
   });
 
+  // Limpar a lista de transações e adicioná-las novamente filtradas
   transactionsUl.innerHTML = "";
   transacoesFiltradas.forEach(addTransactionIntoDOM);
-  calculateAndDisplayBalances();
-}
+  updateBalanceValues();
 
-document.getElementById("adicionar-receita").addEventListener("click", () => {
-  abrirModalTransacao("receita");
-});
-
-document.getElementById("adicionar-despesa").addEventListener("click", () => {
-  abrirModalTransacao("despesa");
-});
-
-function abrirModalTransacao(tipo) {
-  document.getElementById("tipo-transacao-modal").value = tipo;
-  var modalElement = document.getElementById("modalTransacao");
-  var modal = new bootstrap.Modal(modalElement);
-  modal.show();
-}
-
-document
-  .getElementById("salvar-transacao")
-  .addEventListener("click", async () => {
-    const tipo = document.getElementById("tipo-transacao-modal").value;
-    const descricao = document.getElementById("nome-transacao-modal").value;
-    const valor = parseFloat(
-      document.getElementById("valor-transacao-modal").value
-    );
-
-    const transaction = {
-      description: descricao,
-      value: tipo === "despesa" ? -Math.abs(valor) : Math.abs(valor),
-      paid: tipo === "despesa" ? false : true,
-    };
-
-    await addTransactionToDB(transaction);
-    var modalElement = document.getElementById("modalTransacao");
-    var modal = bootstrap.Modal.getInstance(modalElement);
-    modal.hide();
+  // Remover o ícone de filtro de todos os botões de filtro
+  const filterButtons = document.querySelectorAll(".botao-filtro");
+  filterButtons.forEach((button) => {
+    button.innerHTML = button.textContent;
   });
+
+  // Adicionar o ícone de filtro ao botão correspondente
+  botao.innerHTML = '<i class="fa-solid fa-filter"></i>' + botao.textContent;
+};
+
+// Adicionar um listener de clique para cada botão de filtro
+todosButton.addEventListener("click", () => {
+  filtrarTransacoes("todos", todosButton);
+});
+
+receitasButton.addEventListener("click", () => {
+  filtrarTransacoes("receitas", receitasButton);
+});
+
+despesasButton.addEventListener("click", () => {
+  filtrarTransacoes("despesas", despesasButton);
+});
+
+const handleSwipe = (ev, transactionId) => {
+  if (
+    ev.direction === Hammer.DIRECTION_LEFT ||
+    ev.direction === Hammer.DIRECTION_RIGHT
+  ) {
+    animateAndRemoveListItem(ev.target.closest("li"), transactionId);
+  }
+};
+
+const animateAndRemoveListItem = (li, transactionId) => {
+  li.style.transition = "transform 0.3s";
+  li.style.transform = `translateX(${li.getBoundingClientRect().width}px)`;
+  setTimeout(() => {
+    removeTransaction(transactionId);
+  }, 300);
+};
+
+const handlePan = (ev, li) => {
+  const deltaX = ev.deltaX;
+  li.style.transform = `translateX(${deltaX}px)`;
+};
