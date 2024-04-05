@@ -257,26 +257,53 @@ const updateBalanceValues = () => {
 const calculateAndDisplayBalances = () => {
   const totalIncome = transactions
     .filter((t) => t.value > 0)
-    .reduce((acc, t) => acc + Number(t.value), 0); // Garantindo conversão para número
+    .reduce((acc, t) => acc + Number(t.value), 0);
 
   const totalExpensesPaid = transactions
     .filter((t) => t.value < 0 && t.paid)
-    .reduce((acc, t) => acc + Number(t.value), 0); // Garantindo conversão para número
+    .reduce((acc, t) => acc + Number(t.value), 0);
 
   const totalExpenses = transactions
     .filter((t) => t.value < 0)
-    .reduce((acc, t) => acc + Number(t.value), 0); // Garantindo conversão para número
+    .reduce((acc, t) => acc + Number(t.value), 0);
 
-  const currentBalance = totalIncome + totalExpensesPaid; // Soma de números
-  const subtotal = totalIncome + totalExpenses; // Soma de números
+  const currentBalance = totalIncome + totalExpensesPaid; // Receitas - Despesas Pagas
+  const subtotal = totalIncome + totalExpenses; // Receitas - Despesas Totais
 
-  // Atualizando os elementos na interface do usuário
   balanceDisplay.textContent = `R$ ${currentBalance.toFixed(2)}`;
   incomeDisplay.textContent = `R$ ${totalIncome.toFixed(2)}`;
   expenseDisplay.textContent = `R$ ${Math.abs(totalExpenses).toFixed(2)}`;
   document.getElementById(
     "subtotal"
   ).textContent = `Subtotal: R$ ${subtotal.toFixed(2)}`;
+
+  // Atualiza a linha de totais na tabela
+  addTotalRowToDOM(
+    transactions.length,
+    getTotal(transactions.map((t) => t.value))
+  );
+};
+
+// Função para adicionar a linha de totais na tabela
+const addTotalRowToDOM = (itemCount, totalAmount) => {
+  // Remove a linha de totais anterior, se existir
+  const existingTotalRow = transactionsUl.querySelector(".total-row");
+  if (existingTotalRow) {
+    transactionsUl.removeChild(existingTotalRow);
+  }
+
+  let rowContent = `
+    <td>Total</td>
+    <td>${itemCount} itens</td>
+    <td>R$ ${totalAmount}</td>
+    <td></td>
+    <td></td>`;
+
+  const row = document.createElement("tr");
+  row.classList.add("total-row");
+  row.innerHTML = rowContent;
+
+  transactionsUl.appendChild(row);
 };
 
 // Certifique-se de chamar calculateAndDisplayBalances no final de funções que alteram os dados, como init, após adicionar, remover ou alterar transações
@@ -468,16 +495,17 @@ function filtrarTransacoes() {
     const filtroStatus =
       statusSelecionado === "todos" ||
       (statusSelecionado === "pago" && transaction.paid) ||
-      (statusSelecionado === "em aberto" &&
-        transaction.value < 0 &&
-        !transaction.paid);
+      (statusSelecionado === "em aberto" && !transaction.paid);
 
     return filtroTipo && filtroStatus;
   });
 
   transactionsUl.innerHTML = "";
   transacoesFiltradas.forEach(addTransactionIntoDOM);
-  calculateAndDisplayBalances();
+  addTotalRowToDOM(
+    transacoesFiltradas.length,
+    getTotal(transacoesFiltradas.map((t) => t.value))
+  );
 }
 
 document.getElementById("adicionar-receita").addEventListener("click", () => {

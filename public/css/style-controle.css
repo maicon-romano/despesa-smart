@@ -322,6 +322,11 @@ p#subtotal {
   transition: opacity 0.3s ease;
 }
 
+tr.total-row {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
 .transactions li:hover .delete-btn {
   opacity: 1;
 }
