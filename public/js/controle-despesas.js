@@ -88,12 +88,39 @@ const removeTransactionFromDB = (transactionId) => {
 };
 
 // Garanta que `calculateAndDisplayBalances` seja chamada em outros lugares onde as transações são modificadas
-const removeTransaction = (transactionId) => {
-  transactions = transactions.filter(
-    (transaction) => transaction.id !== transactionId
-  );
-  removeTransactionFromDB(transactionId);
-  calculateAndDisplayBalances(); // Atualiza os valores depois de remover uma transação
+const removeTransaction = async (transactionId) => {
+  const userId = currentUser.uid;
+  const userTransactionsRef = db
+    .collection("transactions")
+    .doc(userId)
+    .collection("userTransactions")
+    .doc(transactionId);
+
+  try {
+    await userTransactionsRef.delete();
+    console.log("Transação removida do banco de dados");
+
+    Swal.fire({
+      title: "Removido!",
+      text: "Transação removida com sucesso.",
+      icon: "success",
+      confirmButtonText: "Ok",
+    });
+
+    transactions = transactions.filter(
+      (transaction) => transaction.id !== transactionId
+    );
+    calculateAndDisplayBalances();
+    filtrarTransacoes(); // Recarrega a tabela com os filtros aplicados
+  } catch (error) {
+    console.error("Erro ao remover transação do banco de dados:", error);
+    Swal.fire({
+      title: "Erro!",
+      text: "Não foi possível remover a transação.",
+      icon: "error",
+      confirmButtonText: "Ok",
+    });
+  }
 };
 
 const togglePaymentStatus = async (button, transactionId) => {
@@ -112,25 +139,11 @@ const togglePaymentStatus = async (button, transactionId) => {
   const paidStatus = !transactions[transactionIndex].paid;
 
   try {
-    await transactionRef.update({
-      paid: paidStatus,
-    });
+    await transactionRef.update({ paid: paidStatus });
+    transactions[transactionIndex].paid = paidStatus; // Atualiza o estado na memória
 
-    transactions[transactionIndex].paid = paidStatus; // Atualiza o estado
-
-    // Atualiza a interface de usuário especificamente para a transação alterada
-    if (
-      (paidStatus &&
-        document.getElementById("filtro-status").value === "em aberto") ||
-      (!paidStatus && document.getElementById("filtro-status").value === "pago")
-    ) {
-      transactionsUl.removeChild(button.closest("tr")); // Remove a linha se não corresponder ao filtro
-    } else {
-      button.style.backgroundColor = paidStatus ? "green" : "red";
-      button.textContent = paidStatus ? "Pago" : "Em aberto";
-    }
-
-    calculateAndDisplayBalances(); // Atualiza o saldo e totais imediatamente
+    // Após a atualização, reaplicar os filtros em vez de alterar a DOM diretamente
+    filtrarTransacoes();
   } catch (error) {
     console.error("Erro ao atualizar status de pagamento:", error);
   }
@@ -468,9 +481,31 @@ const updateTransaction = async (transactionId, updatedTransaction) => {
     .collection("userTransactions")
     .doc(transactionId);
 
-  await transactionRef.update(updatedTransaction).catch((error) => {
+  try {
+    await transactionRef.update(updatedTransaction);
+    console.log("Transação atualizada no banco de dados");
+
+    Swal.fire({
+      title: "Sucesso!",
+      text: "Transação atualizada com sucesso.",
+      icon: "success",
+      confirmButtonText: "Ok",
+    });
+
+    const editModal = bootstrap.Modal.getInstance(
+      document.getElementById("editTransactionModal")
+    );
+    editModal.hide();
+    filtrarTransacoes(); // Recarrega a tabela com os filtros aplicados
+  } catch (error) {
     console.error("Erro ao atualizar transação no banco de dados:", error);
-  });
+    Swal.fire({
+      title: "Erro!",
+      text: "Não foi possível atualizar a transação.",
+      icon: "error",
+      confirmButtonText: "Ok",
+    });
+  }
 };
 
 const logoutButton = document.getElementById("logout-button");
@@ -558,8 +593,29 @@ document
       paid: tipo === "despesa" ? false : true,
     };
 
-    await addTransactionToDB(transaction);
-    var modalElement = document.getElementById("modalTransacao");
-    var modal = bootstrap.Modal.getInstance(modalElement);
-    modal.hide();
+    try {
+      await addTransactionToDB(transaction);
+      Swal.fire({
+        // Usando SweetAlert para mostrar a notificação
+        title: "Sucesso!",
+        text: `A ${tipo === "despesa" ? "despesa" : "receita"} foi adicionada.`,
+        icon: "success",
+        confirmButtonText: "Ok",
+      });
+
+      // Resetar o formulário e fechar o modal
+      document.getElementById("nome-transacao-modal").value = "";
+      document.getElementById("valor-transacao-modal").value = "";
+      var modalElement = document.getElementById("modalTransacao");
+      var modal = bootstrap.Modal.getInstance(modalElement);
+      modal.hide();
+    } catch (error) {
+      console.error("Erro ao adicionar transação ao banco de dados:", error);
+      Swal.fire({
+        title: "Erro!",
+        text: "Não foi possível adicionar a transação.",
+        icon: "error",
+        confirmButtonText: "Ok",
+      });
+    }
   });
