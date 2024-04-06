@@ -107,18 +107,29 @@ const togglePaymentStatus = async (button, transactionId) => {
   const transactionIndex = transactions.findIndex(
     (t) => t.id === transactionId
   );
-  const paidStatus = !transactions[transactionIndex].paid;
+  if (transactionIndex === -1) return; // Se não encontrar, retorna
 
-  button.style.backgroundColor = paidStatus ? "green" : "red";
-  button.textContent = paidStatus ? "Pago" : "Em aberto";
+  const paidStatus = !transactions[transactionIndex].paid;
 
   try {
     await transactionRef.update({
       paid: paidStatus,
     });
 
-    // Atualiza o valor "paid" no array "transactions"
-    transactions[transactionIndex].paid = paidStatus;
+    transactions[transactionIndex].paid = paidStatus; // Atualiza o estado
+
+    // Atualiza a interface de usuário especificamente para a transação alterada
+    if (
+      (paidStatus &&
+        document.getElementById("filtro-status").value === "em aberto") ||
+      (!paidStatus && document.getElementById("filtro-status").value === "pago")
+    ) {
+      transactionsUl.removeChild(button.closest("tr")); // Remove a linha se não corresponder ao filtro
+    } else {
+      button.style.backgroundColor = paidStatus ? "green" : "red";
+      button.textContent = paidStatus ? "Pago" : "Em aberto";
+    }
+
     calculateAndDisplayBalances(); // Atualiza o saldo e totais imediatamente
   } catch (error) {
     console.error("Erro ao atualizar status de pagamento:", error);
@@ -166,23 +177,32 @@ const addTransactionIntoDOM = ({ id, description, value, paid }) => {
   const operator = value < 0 ? "-" : "+";
   const CSSClass = value < 0 ? "minus" : "plus";
   const valueWithoutOperator = Math.abs(value).toFixed(2);
-  const paymentButtonHtml = paid ? "Pago" : "Em aberto";
-  const paymentButton = `<button class="payment-btn btn ${
-    paid ? "btn-success" : "btn-danger"
-  }">${paymentButtonHtml}</button>`;
-  const deleteButton = `<button class="del-btn btn btn-danger"><i class="fa-solid fa-trash"></i></button>`;
 
   let rowContent = `
     <td><button class="edit-btn btn btn-primary">✏️</button></td>
     <td>${description}</td>
     <td>${operator} R$ ${valueWithoutOperator}</td>
-    <td>${CSSClass === "minus" ? paymentButton : ""}</td>
-    <td>${deleteButton}</td>`;
+    <td>${
+      CSSClass === "minus"
+        ? `<button class="payment-btn btn ${
+            paid ? "btn-success" : "btn-danger"
+          }" data-id="${id}">${paid ? "Pago" : "Em aberto"}</button>`
+        : ""
+    }</td>
+    <td><button class="del-btn btn btn-danger" data-id="${id}"><i class="fa-solid fa-trash"></i></button></td>`;
 
   const row = document.createElement("tr");
   row.classList.add(CSSClass);
   row.setAttribute("data-id", id);
   row.innerHTML = rowContent;
+
+  // Adiciona eventos ao botão de pagamento diretamente
+  const paymentButton = row.querySelector(".payment-btn");
+  if (paymentButton) {
+    paymentButton.addEventListener("click", () =>
+      togglePaymentStatus(paymentButton, id)
+    );
+  }
 
   transactionsUl.appendChild(row);
 };
