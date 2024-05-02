@@ -232,9 +232,9 @@ const openEditMenu = async (transactionId) => {
   );
   if (newDescription === null) return; // Cancelado pelo usuário
 
-  const newValue = parseFloat(
-    prompt("Editar valor da transação:", transaction.value).replace(",", ".")
-  );
+  // Ajuste aqui: converter entrada para formato correto e aceitar números decimais com vírgula ou ponto
+  const rawNewValue = prompt("Editar valor da transação:", transaction.value);
+  const newValue = parseFloat(rawNewValue.replace(",", "."));
   if (isNaN(newValue)) return; // Cancelado pelo usuário ou valor inválido
 
   transaction.description = newDescription;
@@ -253,7 +253,7 @@ const openEditMenu = async (transactionId) => {
       value: newValue,
     });
 
-    init();
+    init(); // Re-inicializar para atualizar a UI
   } catch (error) {
     console.error("Erro ao atualizar transação no banco de dados:", error);
   }
@@ -452,13 +452,24 @@ transactionsUl.addEventListener("click", (event) => {
     editForm.onsubmit = async function (e) {
       e.preventDefault();
       const newDescription = document.getElementById("editDescription").value;
-      const newValue = parseFloat(document.getElementById("editValue").value);
+      let rawNewValue = document.getElementById("editValue").value;
+      rawNewValue = rawNewValue.replace(",", "."); // Substituir vírgula por ponto para conversão correta
+      const newValue = parseFloat(rawNewValue);
+
+      if (isNaN(newValue)) {
+        alert("Por favor, insira um número válido.");
+        return;
+      }
 
       // Atualiza a transação no banco de dados
-      await updateTransaction(transactionId, {
-        description: newDescription,
-        value: newValue,
-      });
+      await updateTransaction(
+        document.getElementById("editTransactionId").value,
+        {
+          description: newDescription,
+          value: newValue,
+        }
+      );
+
       const editModal = bootstrap.Modal.getInstance(
         document.getElementById("editTransactionModal")
       );
