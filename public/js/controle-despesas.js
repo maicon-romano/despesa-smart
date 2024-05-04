@@ -91,6 +91,156 @@ const removeTransactionFromDB = (transactionId) => {
     });
 };
 
+// Função para adicionar categoria ao banco de dados
+const addCategoryToDB = async (name, type) => {
+  const userId = currentUser ? currentUser.uid : null;
+  if (!userId) {
+    console.error("Usuário não autenticado.");
+    return;
+  }
+
+  const userCategoriesRef = db
+    .collection("transactions")
+    .doc(userId)
+    .collection("userCategories");
+
+  try {
+    await userCategoriesRef.add({ name, type });
+    console.log("Categoria adicionada ao banco de dados");
+  } catch (error) {
+    console.error("Erro ao adicionar categoria ao banco de dados:", error);
+  }
+};
+
+// Função para adicionar fonte ao banco de dados
+const addSourceToDB = async (name, type) => {
+  const userId = currentUser ? currentUser.uid : null;
+  if (!userId) {
+    console.error("Usuário não autenticado.");
+    return;
+  }
+
+  const userSourcesRef = db
+    .collection("transactions")
+    .doc(userId)
+    .collection("userSources");
+
+  try {
+    await userSourcesRef.add({ name, type });
+    console.log("Fonte adicionada ao banco de dados");
+  } catch (error) {
+    console.error("Erro ao adicionar fonte ao banco de dados:", error);
+  }
+};
+
+// Evento para trocar categorias e fontes ao mudar o tipo de transação no modal de adição
+document
+  .getElementById("tipo-transacao-modal")
+  .addEventListener("change", (e) => {
+    const tipoSelecionado = e.target.value;
+    populateCategoriesByType(tipoSelecionado, "categoria-transacao-modal");
+    populateSourcesByType(tipoSelecionado, "fonte-transacao-modal");
+  });
+
+// Função para preencher as categorias com base no tipo selecionado
+const populateCategoriesByType = async (type, selectElementId) => {
+  const userId = currentUser ? currentUser.uid : null;
+  if (!userId) {
+    console.error("Usuário não autenticado.");
+    return;
+  }
+
+  const userCategoriesRef = db
+    .collection("transactions")
+    .doc(userId)
+    .collection("userCategories");
+
+  try {
+    const snapshot = await userCategoriesRef.where("type", "==", type).get();
+    const selectElement = document.getElementById(selectElementId);
+    selectElement.innerHTML = ""; // Limpar opções
+
+    snapshot.forEach((doc) => {
+      const option = document.createElement("option");
+      option.value = doc.data().name;
+      option.textContent = doc.data().name;
+      selectElement.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Erro ao buscar categorias:", error);
+  }
+};
+
+// Função para preencher as fontes com base no tipo selecionado
+const populateSourcesByType = async (type, selectElementId) => {
+  const userId = currentUser ? currentUser.uid : null;
+  if (!userId) {
+    console.error("Usuário não autenticado.");
+    return;
+  }
+
+  const userSourcesRef = db
+    .collection("transactions")
+    .doc(userId)
+    .collection("userSources");
+
+  try {
+    const snapshot = await userSourcesRef.where("type", "==", type).get();
+    const selectElement = document.getElementById(selectElementId);
+    selectElement.innerHTML = ""; // Limpar opções
+
+    snapshot.forEach((doc) => {
+      const option = document.createElement("option");
+      option.value = doc.data().name;
+      option.textContent = doc.data().name;
+      selectElement.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Erro ao buscar fontes:", error);
+  }
+};
+
+// Função para abrir o modal de adicionar categoria
+const openAddCategoryModal = () => {
+  var modal = new bootstrap.Modal(document.getElementById("modalCategoria"));
+  modal.show();
+};
+
+// Função para abrir o modal de adicionar fonte
+const openAddSourceModal = () => {
+  var modal = new bootstrap.Modal(document.getElementById("modalFonte"));
+  modal.show();
+};
+
+// Evento para salvar nova categoria
+// Evento para salvar nova categoria
+document
+  .getElementById("salvar-categoria")
+  .addEventListener("click", async () => {
+    const name = document.getElementById("nome-categoria-modal").value;
+    const type = document.querySelector(
+      'input[name="tipoCategoria"]:checked'
+    ).value;
+    await addCategoryToDB(name, type);
+    var modal = bootstrap.Modal.getInstance(
+      document.getElementById("modalCategoria")
+    );
+    modal.hide();
+    populateCategorySelects(); // Atualiza os selects de categorias
+  });
+
+// Evento para salvar nova fonte
+document.getElementById("salvar-fonte").addEventListener("click", async () => {
+  const name = document.getElementById("nome-fonte-modal").value;
+  const type = document.querySelector('input[name="tipoFonte"]:checked').value;
+  await addSourceToDB(name, type);
+  var modal = bootstrap.Modal.getInstance(
+    document.getElementById("modalFonte")
+  );
+  modal.hide();
+  populateSourceSelects(); // Atualiza os selects de fontes
+});
+
 // Garanta que `calculateAndDisplayBalances` seja chamada em outros lugares onde as transações são modificadas
 const removeTransaction = async (transactionId) => {
   const userId = currentUser.uid;
@@ -418,83 +568,108 @@ const updateTransactionsInDB = () => {
     });
 };
 
+const selecaoTransacao = document.getElementById("selecao-transacao");
+
+// Substitui as chamadas a `populateCategorySelects` e `populateSourceSelects` dentro do evento `onAuthStateChanged`
 auth.onAuthStateChanged((user) => {
   if (user) {
     currentUser = user;
     console.log("Usuário autenticado");
     getTransactionsFromDB();
+    // Preencher ambos os selects com todas as categorias e fontes inicialmente
+    populateCategoriesByType("receita", "categoria-transacao-modal");
+    populateSourcesByType("receita", "fonte-transacao-modal");
   } else {
+    currentUser = null;
     console.log("Usuário não autenticado");
     transactionsUl.innerHTML = "";
   }
 });
 
-const selecaoTransacao = document.getElementById("selecao-transacao");
+// Função para abrir o modal de adicionar transação com preenchimento automático de categorias e fontes
+function abrirModalTransacao(tipo) {
+  document.getElementById("tipo-transacao-modal").value = tipo;
+  populateCategoriesByType(tipo, "categoria-transacao-modal");
+  populateSourcesByType(tipo, "fonte-transacao-modal");
 
+  const modalElement = document.getElementById("modalTransacao");
+  const modal = new bootstrap.Modal(modalElement);
+  modal.show();
+}
+
+// Evento para deletar ou editar uma transação
 transactionsUl.addEventListener("click", (event) => {
+  // Identificar a linha associada ao botão clicado
   const tr = event.target.closest("tr");
+  if (!tr) return;
+
   const transactionId = tr.getAttribute("data-id");
 
-  if (event.target.classList.contains("del-btn")) {
-    // Configura o modal de delete e o abre
+  // Verificar se o botão clicado é de edição
+  if (event.target.classList.contains("edit-btn")) {
+    const transaction = transactions.find((t) => t.id === transactionId);
+    openEditTransactionModal(transaction);
+
+    // Verificar se o botão clicado é de exclusão
+  } else if (event.target.classList.contains("del-btn")) {
     const deleteModal = new bootstrap.Modal(
       document.getElementById("deleteTransactionModal")
     );
-    document.getElementById("confirmDelete").onclick = function () {
-      removeTransaction(transactionId);
+    document.getElementById("confirmDelete").onclick = async function () {
+      await removeTransaction(transactionId);
       deleteModal.hide();
     };
     deleteModal.show();
-  } else if (event.target.classList.contains("edit-btn")) {
-    // Preenche os dados no modal de edição, incluindo categoria e fonte
-    const transaction = transactions.find((t) => t.id === transactionId);
-
-    document.getElementById("editTransactionId").value = transactionId;
-    document.getElementById("editDescription").value = transaction.description;
-    document.getElementById("editValue").value = transaction.value;
-    document.getElementById("editCategory").value = transaction.category; // Nova linha
-    document.getElementById("editSource").value = transaction.source; // Nova linha
-
-    const editModal = new bootstrap.Modal(
-      document.getElementById("editTransactionModal")
-    );
-    editModal.show();
-
-    // Configura o ouvinte de evento para o formulário de edição
-    const editForm = document.getElementById("editTransactionForm");
-    editForm.onsubmit = async function (e) {
-      e.preventDefault();
-
-      const newDescription = document.getElementById("editDescription").value;
-      let rawNewValue = document.getElementById("editValue").value;
-      rawNewValue = rawNewValue.replace(",", "."); // Substituir vírgula por ponto para conversão correta
-      const newValue = parseFloat(rawNewValue);
-      const newCategory = document.getElementById("editCategory").value; // Categoria editada
-      const newSource = document.getElementById("editSource").value; // Fonte editada
-
-      if (isNaN(newValue)) {
-        alert("Por favor, insira um número válido.");
-        return;
-      }
-
-      // Atualiza a transação no banco de dados
-      await updateTransaction(transactionId, {
-        description: newDescription,
-        value: newValue,
-        category: newCategory,
-        source: newSource,
-      });
-
-      const editModal = bootstrap.Modal.getInstance(
-        document.getElementById("editTransactionModal")
-      );
-      editModal.hide();
-      init(); // Re-inicialize a visualização para mostrar dados atualizados
-    };
   }
 });
 
-// Função para atualizar uma transação
+// Função de abrir o modal de edição para uma transação específica
+const openEditTransactionModal = async (transaction) => {
+  if (!transaction) return;
+
+  // Preencher campos no modal
+  document.getElementById("editTransactionId").value = transaction.id;
+  document.getElementById("editDescription").value = transaction.description;
+  document.getElementById("editValue").value = Math.abs(transaction.value);
+
+  const tipo = transaction.value > 0 ? "receita" : "despesa";
+  await populateCategoriesByType(tipo, "editCategory");
+  await populateSourcesByType(tipo, "editSource");
+
+  document.getElementById("editCategory").value = transaction.category;
+  document.getElementById("editSource").value = transaction.source;
+
+  // Exibir o modal
+  const editModal = new bootstrap.Modal(
+    document.getElementById("editTransactionModal")
+  );
+  editModal.show();
+};
+// Associa a função `onsubmit` ao formulário de edição
+document.getElementById("editTransactionForm").onsubmit = async function (e) {
+  e.preventDefault(); // Previne comportamento padrão de recarregar a página
+
+  // Obtenha os dados do formulário
+  const transactionId = document.getElementById("editTransactionId").value;
+  const description = document.getElementById("editDescription").value;
+  let value = parseFloat(document.getElementById("editValue").value);
+  const category = document.getElementById("editCategory").value;
+  const source = document.getElementById("editSource").value;
+
+  // Verifique se é uma despesa ou receita
+  value = value < 0 ? -Math.abs(value) : Math.abs(value);
+
+  // Atualiza a transação com os novos valores
+  const updatedTransaction = { description, value, category, source };
+
+  try {
+    await updateTransaction(transactionId, updatedTransaction); // Função de atualização no Firestore
+  } catch (error) {
+    console.error("Erro ao tentar atualizar a transação:", error);
+  }
+};
+
+// Função para atualizar uma transação no Firestore
 const updateTransaction = async (transactionId, updatedTransaction) => {
   const userId = currentUser.uid;
   const transactionRef = db
@@ -507,6 +682,7 @@ const updateTransaction = async (transactionId, updatedTransaction) => {
     await transactionRef.update(updatedTransaction);
     console.log("Transação atualizada no banco de dados");
 
+    // Exibir SweetAlert de sucesso
     Swal.fire({
       title: "Sucesso!",
       text: "Transação atualizada com sucesso.",
@@ -514,13 +690,18 @@ const updateTransaction = async (transactionId, updatedTransaction) => {
       confirmButtonText: "Ok",
     });
 
+    // Fechar o modal de edição
     const editModal = bootstrap.Modal.getInstance(
       document.getElementById("editTransactionModal")
     );
     editModal.hide();
-    filtrarTransacoes(); // Recarrega a tabela com os filtros aplicados
+
+    // Recarregar a tabela de transações filtradas
+    filtrarTransacoes();
   } catch (error) {
     console.error("Erro ao atualizar transação no banco de dados:", error);
+
+    // Exibir SweetAlert de erro
     Swal.fire({
       title: "Erro!",
       text: "Não foi possível atualizar a transação.",
@@ -602,6 +783,15 @@ document.getElementById("adicionar-receita").addEventListener("click", () => {
 document.getElementById("adicionar-despesa").addEventListener("click", () => {
   abrirModalTransacao("despesa");
 });
+
+// Eventos para abrir os modais de adicionar categoria e fonte
+document
+  .getElementById("adicionar-categoria")
+  .addEventListener("click", openAddCategoryModal);
+
+document
+  .getElementById("adicionar-fonte")
+  .addEventListener("click", openAddSourceModal);
 
 function abrirModalTransacao(tipo) {
   document.getElementById("tipo-transacao-modal").value = tipo;

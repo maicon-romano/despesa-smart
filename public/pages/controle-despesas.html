@@ -83,7 +83,10 @@
     <div class="acoes-transacoes">
       <button id="adicionar-receita" class="btn btn-success">Adicionar Receita</button>
       <button id="adicionar-despesa" class="btn btn-danger">Adicionar Despesa</button>
+      <button id="adicionar-categoria" class="btn btn-secondary">Adicionar Categoria</button>
+      <button id="adicionar-fonte" class="btn btn-secondary">Adicionar Fonte</button>
     </div>
+
 
     <!-- Modal para adicionar transação -->
     <div class="modal fade" id="modalTransacao" tabindex="-1" aria-labelledby="modalTransacaoLabel" aria-hidden="true">
@@ -113,15 +116,12 @@
               <div class="mb-3">
                 <label for="categoria-transacao-modal" class="form-label">Categoria:</label>
                 <select id="categoria-transacao-modal" class="form-select">
-                  <option value="casa">Casa</option>
-                  <option value="carro">Carro</option>
-                  <option value="comida">Comida</option>
-                  <option value="lazer">Lazer</option>
                 </select>
               </div>
               <div class="mb-3">
                 <label for="fonte-transacao-modal" class="form-label">Fonte:</label>
-                <input type="text" id="fonte-transacao-modal" class="form-control" required>
+                <select id="fonte-transacao-modal" class="form-select">
+                </select>
               </div>
             </form>
           </div>
@@ -132,6 +132,78 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal para adicionar categoria -->
+    <div class="modal fade" id="modalCategoria" tabindex="-1" aria-labelledby="modalCategoriaLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalCategoriaLabel">Adicionar Categoria</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="form-modal-categoria">
+              <div class="mb-3">
+                <label>Tipo:</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="tipoCategoria" id="radioCategoriaReceita" value="receita" required>
+                  <label class="form-check-label" for="radioCategoriaReceita">Receita</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="tipoCategoria" id="radioCategoriaDespesa" value="despesa" required>
+                  <label class="form-check-label" for="radioCategoriaDespesa">Despesa</label>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="nome-categoria-modal" class="form-label">Nome:</label>
+                <input type="text" id="nome-categoria-modal" class="form-control" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="button" id="salvar-categoria" class="btn btn-primary">Salvar Categoria</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para adicionar fonte -->
+    <div class="modal fade" id="modalFonte" tabindex="-1" aria-labelledby="modalFonteLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalFonteLabel">Adicionar Fonte</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="form-modal-fonte">
+              <div class="mb-3">
+                <label>Tipo:</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="tipoFonte" id="radioFonteReceita" value="receita" required>
+                  <label class="form-check-label" for="radioFonteReceita">Receita</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="tipoFonte" id="radioFonteDespesa" value="despesa" required>
+                  <label class="form-check-label" for="radioFonteDespesa">Despesa</label>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="nome-fonte-modal" class="form-label">Nome:</label>
+                <input type="text" id="nome-fonte-modal" class="form-control" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="button" id="salvar-fonte" class="btn btn-primary">Salvar Fonte</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
 
     <!-- Modal de edição -->
     <div class="modal fade" id="editTransactionModal" tabindex="-1" aria-labelledby="editTransactionModalLabel" aria-hidden="true">
@@ -150,21 +222,17 @@
               </div>
               <div class="mb-3">
                 <label for="editValue" class="form-label">Valor</label>
-                <input type="number" class="form-control" id="editValue" required>
+                <input type="number" class="form-control" id="editValue" step="0.010" required>
               </div>
               <div class="mb-3">
                 <label for="editCategory" class="form-label">Categoria:</label>
                 <select id="editCategory" class="form-select">
-                  <option value="casa">Casa</option>
-                  <option value="carro">Carro</option>
-                  <option value="comida">Comida</option>
-                  <option value="lazer">Lazer</option>
-                  <!-- Adicione outras categorias conforme necessário -->
                 </select>
               </div>
               <div class="mb-3">
                 <label for="editSource" class="form-label">Fonte:</label>
-                <input type="text" class="form-control" id="editSource" required>
+                <select id="editSource" class="form-select">
+                </select>
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
