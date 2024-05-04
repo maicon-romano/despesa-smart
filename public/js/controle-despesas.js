@@ -33,13 +33,15 @@ const getTransactionsFromDB = () => {
 
   userTransactionsRef.onSnapshot(
     (querySnapshot) => {
-      transactions = []; // Limpa o array de transações a cada atualização
+      transactions = [];
       querySnapshot.forEach((doc) => {
         const transaction = {
           id: doc.id,
           description: doc.data().description,
           value: doc.data().value,
           paid: doc.data().paid,
+          category: doc.data().category, // Certifique-se de que este campo está sendo extraído corretamente
+          source: doc.data().source, // Certifique-se de que este campo está sendo extraído corretamente
         };
         transactions.push(transaction);
       });
@@ -63,6 +65,8 @@ const addTransactionToDB = async (transaction) => {
       description: transaction.description,
       value: transaction.value.toString().replace(",", "."),
       paid: transaction.paid,
+      category: transaction.category,
+      source: transaction.source,
     })
     .catch((error) => {
       console.error("Erro ao adicionar transação ao banco de dados:", error);
@@ -186,37 +190,38 @@ atualizarContasBotao.addEventListener("click", () => {
   limparBotoesPago();
 });
 
-const addTransactionIntoDOM = ({ id, description, value, paid }) => {
+const addTransactionIntoDOM = ({
+  id,
+  description,
+  value,
+  paid,
+  category,
+  source,
+}) => {
+  console.log(category, source); // Isso mostrará os valores no console do navegador
   const operator = value < 0 ? "-" : "+";
   const CSSClass = value < 0 ? "minus" : "plus";
   const valueWithoutOperator = Math.abs(value).toFixed(2);
 
   let rowContent = `
-    <td><button class="edit-btn btn btn-primary">✏️</button></td>
-    <td>${description}</td>
-    <td>${operator} R$ ${valueWithoutOperator}</td>
-    <td>${
-      CSSClass === "minus"
-        ? `<button class="payment-btn btn ${
-            paid ? "btn-success" : "btn-danger"
-          }" data-id="${id}">${paid ? "Pago" : "Em aberto"}</button>`
-        : ""
-    }</td>
-    <td><button class="del-btn btn btn-danger" data-id="${id}"><i class="fa-solid fa-trash"></i></button></td>`;
+      <td><button class="edit-btn btn btn-primary">✏️</button></td>
+      <td>${description}</td>
+      <td>${operator} R$ ${valueWithoutOperator}</td>
+      <td>${category}</td>
+      <td>${source}</td>
+      <td>${
+        CSSClass === "minus"
+          ? `<button class="payment-btn btn ${
+              paid ? "btn-success" : "btn-danger"
+            }" data-id="${id}">${paid ? "Pago" : "Em aberto"}</button>`
+          : ""
+      }</td>
+      <td><button class="del-btn btn btn-danger" data-id="${id}"><i class="fa-solid fa-trash"></i></button></td>`;
 
   const row = document.createElement("tr");
   row.classList.add(CSSClass);
   row.setAttribute("data-id", id);
   row.innerHTML = rowContent;
-
-  // Adiciona eventos ao botão de pagamento diretamente
-  const paymentButton = row.querySelector(".payment-btn");
-  if (paymentButton) {
-    paymentButton.addEventListener("click", () =>
-      togglePaymentStatus(paymentButton, id)
-    );
-  }
-
   transactionsUl.appendChild(row);
 };
 
@@ -441,20 +446,31 @@ transactionsUl.addEventListener("click", (event) => {
     };
     deleteModal.show();
   } else if (event.target.classList.contains("edit-btn")) {
-    // Preenche os dados no modal de edição
+    // Preenche os dados no modal de edição, incluindo categoria e fonte
     const transaction = transactions.find((t) => t.id === transactionId);
+
     document.getElementById("editTransactionId").value = transactionId;
     document.getElementById("editDescription").value = transaction.description;
     document.getElementById("editValue").value = transaction.value;
+    document.getElementById("editCategory").value = transaction.category; // Nova linha
+    document.getElementById("editSource").value = transaction.source; // Nova linha
+
+    const editModal = new bootstrap.Modal(
+      document.getElementById("editTransactionModal")
+    );
+    editModal.show();
 
     // Configura o ouvinte de evento para o formulário de edição
     const editForm = document.getElementById("editTransactionForm");
     editForm.onsubmit = async function (e) {
       e.preventDefault();
+
       const newDescription = document.getElementById("editDescription").value;
       let rawNewValue = document.getElementById("editValue").value;
       rawNewValue = rawNewValue.replace(",", "."); // Substituir vírgula por ponto para conversão correta
       const newValue = parseFloat(rawNewValue);
+      const newCategory = document.getElementById("editCategory").value; // Categoria editada
+      const newSource = document.getElementById("editSource").value; // Fonte editada
 
       if (isNaN(newValue)) {
         alert("Por favor, insira um número válido.");
@@ -462,24 +478,19 @@ transactionsUl.addEventListener("click", (event) => {
       }
 
       // Atualiza a transação no banco de dados
-      await updateTransaction(
-        document.getElementById("editTransactionId").value,
-        {
-          description: newDescription,
-          value: newValue,
-        }
-      );
+      await updateTransaction(transactionId, {
+        description: newDescription,
+        value: newValue,
+        category: newCategory,
+        source: newSource,
+      });
 
       const editModal = bootstrap.Modal.getInstance(
         document.getElementById("editTransactionModal")
       );
       editModal.hide();
+      init(); // Re-inicialize a visualização para mostrar dados atualizados
     };
-
-    const editModal = new bootstrap.Modal(
-      document.getElementById("editTransactionModal")
-    );
-    editModal.show();
   }
 });
 
@@ -549,9 +560,16 @@ document
   .getElementById("filtro-status")
   .addEventListener("change", filtrarTransacoes);
 
+document
+  .getElementById("filtro-nome")
+  .addEventListener("input", filtrarTransacoes);
+
 function filtrarTransacoes() {
   const tipoSelecionado = document.getElementById("filtro-tipo").value;
   const statusSelecionado = document.getElementById("filtro-status").value;
+  const nomePesquisa = document
+    .getElementById("filtro-nome")
+    .value.toLowerCase();
 
   let transacoesFiltradas = transactions.filter((transaction) => {
     const filtroTipo =
@@ -562,8 +580,11 @@ function filtrarTransacoes() {
       statusSelecionado === "todos" ||
       (statusSelecionado === "pago" && transaction.paid) ||
       (statusSelecionado === "em aberto" && !transaction.paid);
+    const filtroNome = transaction.description
+      .toLowerCase()
+      .includes(nomePesquisa);
 
-    return filtroTipo && filtroStatus;
+    return filtroTipo && filtroStatus && filtroNome;
   });
 
   transactionsUl.innerHTML = "";
@@ -597,28 +618,35 @@ document
     const valor = parseFloat(
       document.getElementById("valor-transacao-modal").value
     );
+    const categoria = document.getElementById(
+      "categoria-transacao-modal"
+    ).value;
+    const fonte = document.getElementById("fonte-transacao-modal").value;
 
     const transaction = {
       description: descricao,
       value: tipo === "despesa" ? -Math.abs(valor) : Math.abs(valor),
       paid: tipo === "despesa" ? false : true,
+      category: categoria,
+      source: fonte,
     };
 
     try {
       await addTransactionToDB(transaction);
       Swal.fire({
-        // Usando SweetAlert para mostrar a notificação
         title: "Sucesso!",
         text: `A ${tipo === "despesa" ? "despesa" : "receita"} foi adicionada.`,
         icon: "success",
         confirmButtonText: "Ok",
       });
 
-      // Resetar o formulário e fechar o modal
-      document.getElementById("nome-transacao-modal").value = "";
-      document.getElementById("valor-transacao-modal").value = "";
-      var modalElement = document.getElementById("modalTransacao");
-      var modal = bootstrap.Modal.getInstance(modalElement);
+      document
+        .getElementById("modalTransacao")
+        .querySelector(".modal-body form")
+        .reset();
+      var modal = bootstrap.Modal.getInstance(
+        document.getElementById("modalTransacao")
+      );
       modal.hide();
     } catch (error) {
       console.error("Erro ao adicionar transação ao banco de dados:", error);

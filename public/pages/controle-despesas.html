@@ -56,6 +56,12 @@
     <h3>Transações</h3>
     <div class="filtros">
       <div class="grupo-filtro-tipo">
+        <label for="filtro-nome">Nome:</label>
+        <input id="filtro-nome" type="text" class="form-control" placeholder="Buscar transação">
+      </div>
+
+
+      <div class="grupo-filtro-tipo">
         <label for="filtro-tipo">Tipo:</label>
         <select id="filtro-tipo" class="form-control">
           <option value="todos">Todos</option>
@@ -104,6 +110,19 @@
                 <label for="valor-transacao-modal" class="form-label">Valor:</label>
                 <input type="number" id="valor-transacao-modal" class="form-control" required>
               </div>
+              <div class="mb-3">
+                <label for="categoria-transacao-modal" class="form-label">Categoria:</label>
+                <select id="categoria-transacao-modal" class="form-select">
+                  <option value="casa">Casa</option>
+                  <option value="carro">Carro</option>
+                  <option value="comida">Comida</option>
+                  <option value="lazer">Lazer</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="fonte-transacao-modal" class="form-label">Fonte:</label>
+                <input type="text" id="fonte-transacao-modal" class="form-control" required>
+              </div>
             </form>
           </div>
           <div class="modal-footer">
@@ -131,7 +150,21 @@
               </div>
               <div class="mb-3">
                 <label for="editValue" class="form-label">Valor</label>
-                <input type="number" class="form-control" id="editValue" step="any" required>
+                <input type="number" class="form-control" id="editValue" required>
+              </div>
+              <div class="mb-3">
+                <label for="editCategory" class="form-label">Categoria:</label>
+                <select id="editCategory" class="form-select">
+                  <option value="casa">Casa</option>
+                  <option value="carro">Carro</option>
+                  <option value="comida">Comida</option>
+                  <option value="lazer">Lazer</option>
+                  <!-- Adicione outras categorias conforme necessário -->
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="editSource" class="form-label">Fonte:</label>
+                <input type="text" class="form-control" id="editSource" required>
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -142,6 +175,7 @@
         </div>
       </div>
     </div>
+
 
     <!-- Modal de exclusão -->
     <div class="modal fade" id="deleteTransactionModal" tabindex="-1" aria-labelledby="deleteTransactionModalLabel" aria-hidden="true">
@@ -170,6 +204,8 @@
             <th>Editar</th>
             <th>Nome</th>
             <th>Valor</th>
+            <th>Categoria</th>
+            <th>Fonte</th>
             <th>Status</th>
             <th>Ações</th>
           </tr>

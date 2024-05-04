@@ -20,10 +20,14 @@ body {
 }
 
 .filtros {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  gap: 40px;
   text-align: center;
   justify-items: center;
+}
+
+#filtro-nome {
+  text-align: center;
 }
 
 .acoes-transacoes {
