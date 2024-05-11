@@ -348,7 +348,6 @@ const addTransactionIntoDOM = ({
   category,
   source,
 }) => {
-  console.log(category, source); // Isso mostrará os valores no console do navegador
   const operator = value < 0 ? "-" : "+";
   const CSSClass = value < 0 ? "minus" : "plus";
   const valueWithoutOperator = Math.abs(value).toFixed(2);
@@ -373,6 +372,12 @@ const addTransactionIntoDOM = ({
   row.setAttribute("data-id", id);
   row.innerHTML = rowContent;
   transactionsUl.appendChild(row);
+
+  if (CSSClass === "minus") {
+    row.querySelector(".payment-btn").addEventListener("click", function () {
+      togglePaymentStatus(this, id);
+    });
+  }
 };
 
 const openEditMenu = async (transactionId) => {
